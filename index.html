@@ -2,16 +2,19 @@
 <head>
 	<title>Title</title>
 	<meta charset="utf-8">
-	<link rel="stylesheet" href="style.css">
 	<script>
-new EventSource('/events').onmessage = function(e) {
-	console.log(e);
-};
-function run(jsonData) {
+function run(parts, responseDiv) {
     var formData = new FormData();
-    formData.append('data', JSON.stringify(jsonData));
+    formData.append('data', JSON.stringify(parts));
     var request = new XMLHttpRequest();
     request.open('POST', '/run', true);
+    request.onreadystatechange = function() {
+	    if (request.readyState < 4) {
+	        return;
+	    }
+
+	    responseDiv.innerText = request.responseText;
+	};
     request.send(formData);
 }
 var allBlocks = [];
@@ -30,6 +33,8 @@ function newBlock() {
 
 	var inSpan = document.createElement('span');
 	block.appendChild(inSpan);
+
+	var result = document.createElement('div')
 
 	var input = document.createElement('input');
 	input.type = "text";
@@ -63,17 +68,17 @@ function newBlock() {
 		}
 
 		if (e.which === 13) {
-			var parts = [];
-			for (var i = 0; i < inSpan.children.length; i++) {
+			var parts = inSpan.children[0].innerText.split(' ');
+			for (var i = 1; i < inSpan.children.length-1; i++) {
 				parts.push(inSpan.children[i].innerText);
 			}
-			run({n: n, parts: parts});
+			run(parts, result);
 			newBlock();
 		}
 	}
 	inSpan.appendChild(input);
 
-	var result = document.createElement('div')
+	result.id = 'result' + n;
 	result.innerText = 'Result';
 	block.appendChild(result);
 
