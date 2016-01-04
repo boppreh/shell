@@ -1,0 +1,91 @@
+<html>
+<head>
+	<title>Title</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="style.css">
+	<script>
+new EventSource('/events').onmessage = function(e) {
+	console.log(e);
+};
+function run(jsonData) {
+    var formData = new FormData();
+    formData.append('data', JSON.stringify(jsonData));
+    var request = new XMLHttpRequest();
+    request.open('POST', '/run', true);
+    request.send(formData);
+}
+var allBlocks = [];
+function newBlock() {
+	var n = allBlocks.length + 1;
+
+	var block = document.createElement('div');
+
+	if (n !== undefined) {
+		block.id = 'block' + n;
+		var number = document.createElement('span');
+		number.innerText = '#' + n;
+		number.classList.add('block-number');
+		block.appendChild(number);
+	}
+
+	var inSpan = document.createElement('span');
+	block.appendChild(inSpan);
+
+	var input = document.createElement('input');
+	input.type = "text";
+	input.onkeydown = function(e) {
+		if (e.which === 9 || e.which == 13) {
+			e.preventDefault();
+
+			var input = e.target;
+			var next = null;
+			if (e.shiftKey) {
+				var next = input.previousElementSibling;
+				if (next === null) {
+					return;
+				}
+			} else {
+				var next = input.nextElementSibling;
+				if (next === null) {
+					if (input.value === '') {
+						return;
+					}
+					next = document.createElement('span');
+					inSpan.appendChild(next);
+				}
+			}
+			var replacement = document.createElement('span');
+			replacement.innerText = input.value;
+			inSpan.replaceChild(replacement, input);
+			input.value = next.innerText;
+			inSpan.replaceChild(input, next);
+			input.focus()
+		}
+
+		if (e.which === 13) {
+			var parts = [];
+			for (var i = 0; i < inSpan.children.length; i++) {
+				parts.push(inSpan.children[i].innerText);
+			}
+			run({n: n, parts: parts});
+			newBlock();
+		}
+	}
+	inSpan.appendChild(input);
+
+	var result = document.createElement('div')
+	result.innerText = 'Result';
+	block.appendChild(result);
+
+	document.body.appendChild(block);
+
+	input.focus();
+
+	allBlocks.push(block);
+}
+window.onload = newBlock;
+	</script>
+</head>
+<body>
+</body>
+</html>
