@@ -24,6 +24,11 @@ input {
 	margin-bottom: 10px;
 	background: #EEE;
 }
+
+.block-number {
+	color: #A11;
+	font: bold 14px sans-serif;
+}
 	</style>
 	<script>
 function run(parts, responseDiv) {
@@ -46,16 +51,16 @@ function newBlock() {
 
 	var block = document.createElement('div');
 
-	if (n !== undefined) {
-		block.id = 'block' + n;
-		var number = document.createElement('span');
-		number.innerText = '#' + n;
-		number.classList.add('block-number');
-		block.appendChild(number);
-	}
+	var number = document.createElement('span');
+	number.innerText = '#' + n;
+	number.classList.add('block-number');
+	block.appendChild(number);
 
 	var inSpan = document.createElement('span');
 	block.appendChild(inSpan);
+
+	var first = document.createElement('span');
+	inSpan.appendChild(first);
 
 	var result = document.createElement('div')
 
@@ -93,7 +98,7 @@ function newBlock() {
 		}
 
 		if (e.which === 13) {
-			var parts = inSpan.children[0].innerText.split(' ');
+			var parts = [];
 			for (var i = 1; i < inSpan.children.length-1; i++) {
 				parts.push(inSpan.children[i].innerText);
 			}

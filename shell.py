@@ -15,8 +15,9 @@ if __name__ == '__main__':
 	@app.route('/run', methods=['POST'])
 	def run():
 		try:
-			obj = json.loads(flask.request.form['data'])
-			return subprocess.check_output(obj, stderr=subprocess.STDOUT)
+			parts = json.loads(flask.request.form['data'])
+			first, *rest = filter(len, parts)
+			return subprocess.check_output(first.split() + rest, stderr=subprocess.STDOUT)
 		except Exception as e:
 			return str(e)
 
