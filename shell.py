@@ -4,6 +4,8 @@ if __name__ == '__main__':
 	import base64
 	import json
 	import subprocess
+	import mimetypes
+	from os.path import splitext
 
 	app = flask.Flask(__name__)
 	events_queue = Queue()
@@ -15,7 +17,8 @@ if __name__ == '__main__':
 
 	@app.route('/outputs/<id>')
 	def get_output(id):
-		return blocks[int(id)]
+		output, mimetype = blocks[int(id)]
+		return flask.Response(output, mimetype=mimetype)
 
 	@app.route('/run', methods=['POST'])
 	def run():
@@ -23,11 +26,17 @@ if __name__ == '__main__':
 			data = json.loads(flask.request.form['data'])
 			first, *rest = filter(len, data['parts'])
 			output = subprocess.check_output(first.split() + rest, stderr=subprocess.STDOUT)
-			blocks[data['id']] = output
 			try:
-				return output.decode('utf-8')
+				value = output.decode('utf-8')
 			except UnicodeError:
-				return '{} bytes'.format(len(output))
+				value = '{} bytes'.format(len(output))
+
+			try:
+				type, *_ = filter(bool, sum(map(mimetypes.guess_type, rest), ()))
+			except ValueError:
+				type = None
+			blocks[data['id']] = (output, type)
+			return get_output(data['id'])
 		except Exception as e:
 			return 'Shell error: {}'.format(e)
 
