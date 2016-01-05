@@ -1,122 +1,155 @@
 <html>
 <head>
-	<title>Title</title>
-	<meta charset="utf-8">
-	<style>
+    <title>Title</title>
+    <meta charset="utf-8">
+    <style>
 body {
-	font: 12px courier,sans-serif;
+    font: 12px courier,sans-serif;
 }
 
 input {
-	font: inherit;
+    font: inherit;
+}
+
+#btn-new-block {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
 }
 
 .input-part {
-	margin-left: 5px;
-	padding: 1px 3px;
-	background: #EEE;
+    margin-left: 5px;
+    padding: 1px 3px;
+    background: #EEE;
 }
 .input-part::before .input-part::after {
-	content: '  ';
+    content: '  ';
 }
 .result {
-	padding: 10px;
-	margin-top: 5px;
-	margin-bottom: 10px;
-	background: #EEE;
+    padding: 10px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    background: #EEE;
 }
 
 .block-number {
-	color: #A11;
-	font: bold 14px sans-serif;
+    color: #A11;
+    font: bold 14px sans-serif;
 }
-	</style>
-	<script>
-function run(parts, responseDiv) {
-    var formData = new FormData();
-    formData.append('data', JSON.stringify(parts));
-    var request = new XMLHttpRequest();
-    request.open('POST', '/run', true);
-    request.onreadystatechange = function() {
-	    if (request.readyState < 4) {
-	        return;
-	    }
-
-	    responseDiv.innerText = request.responseText;
-	};
-    request.send(formData);
-}
-
+    </style>
+    <script>
 function newPart() {
-	var part = document.createElement('span');
-	part.classList.add('input-part')
-	part.onclick = function(e) {
-		if (input.parentNode !== null) {
-			var replacement = newPart();
-			replacement.innerText = input.value;
-			input.parentNode.replaceChild(replacement, input);
-		}
-		input.value = part.innerText;
-		part.parentNode.replaceChild(input, part);
-		input.focus();
-	}
-	return part;
+    var part = document.createElement('span');
+    part.classList.add('input-part')
+    part.onclick = function(e) {
+        if (input.parentNode !== null) {
+            var replacement = newPart();
+            replacement.innerText = input.value;
+            input.parentNode.replaceChild(replacement, input);
+        }
+        input.value = part.innerText;
+        part.parentNode.replaceChild(input, part);
+        input.focus();
+    }
+    return part;
 }
 
 var input = document.createElement('input');
 input.classList.add('input-part')
 input.type = 'text';
 input.onkeydown = function(e) {
-	if (e.which === 9) {
-		e.preventDefault();
-		if (!e.shiftKey) {
-			if (!input.nextSibling) {
-				input.parentNode.appendChild(newPart());
-			}
-			input.nextSibling.onclick();
-		} else {
-			input.previousSibling && input.previousSibling.onclick();
-		}
-	}
-	if (e.which === 13) {
-		var inSpan = input.parentNode;
-		newBlock();
-
-		var parts = [];
-		for (var i = 0; i < inSpan.children.length; i++) {
-			parts.push(inSpan.children[i].innerText);
-		}
-		run(parts, inSpan.nextSibling);
-	}
+    if (e.which === 9) {
+        e.preventDefault();
+        if (!e.shiftKey) {
+            if (!input.nextSibling) {
+                input.parentNode.appendChild(newPart());
+            }
+            input.nextSibling.onclick();
+        } else {
+            input.previousSibling && input.previousSibling.onclick();
+        }
+    }
+    if (e.which === 13) {
+        input.parentNode.parentNode.run();
+        newBlock();
+    }
 }
 
 var n = 0;
 function newBlock() {
-	n++;
-	var block = document.createElement('div');
+    n++;
+    var block = document.createElement('div');
 
-	var number = document.createElement('span');
-	number.innerText = '#' + n;
-	number.classList.add('block-number');
-	block.appendChild(number);
+    var number = document.createElement('span');
+    number.innerText = '#' + n;
+    number.classList.add('block-number');
+    block.appendChild(number);
 
-	var inSpan = document.createElement('span');
-	block.appendChild(inSpan);
+    var remove = document.createElement('button');
+    remove.classList.add('remove');
+    remove.innerText = '-'
+    block.appendChild(remove);
+    remove.onclick = function() {
+        block.parentNode.removeChild(block);
+    }
 
-	var first = newPart();
-	inSpan.appendChild(first);
+    var inSpan = document.createElement('span');
+    block.appendChild(inSpan);
 
-	var result = document.createElement('pre');
-	result.classList.add('result');
-	result.id = 'result' + n;
-	block.appendChild(result);
+    var run = document.createElement('button');
+    run.classList.add('run');
+    run.innerText = '>'
+    block.appendChild(run);
 
-	document.body.appendChild(block);
+    var first = newPart();
+    inSpan.appendChild(first);
 
-	first.onclick();
+    var result = document.createElement('pre');
+    result.classList.add('result');
+    result.id = 'result' + n;
+    result.collapsed = '';
+    block.appendChild(result);
+
+    block.run = run.onclick = function() {
+        var parts = [];
+        for (var i = 0; i < inSpan.children.length; i++) {
+            var child = inSpan.children[i];
+            parts.push(child.innerText || child.value);
+        }
+
+        var formData = new FormData();
+        formData.append('data', JSON.stringify(parts));
+        var request = new XMLHttpRequest();
+        request.open('POST', '/run', true);
+        request.innerText = '...';
+        request.onreadystatechange = function() {
+            if (request.readyState < 4) {
+                return;
+            }
+
+            result.innerText = request.responseText;
+        };
+        request.send(formData);
+    }
+    number.onclick = function() {
+        var temp = result.collapsed;
+        result.collapsed = result.innerText;
+        result.innerText = temp;
+    }
+
+    document.body.appendChild(block);
+
+    first.onclick();
 }
-window.onload = newBlock;
-	</script>
+window.onload = function() {
+    var newBlockButton = document.createElement('button');
+    newBlockButton.innerText = '+';
+    newBlockButton.id = 'btn-new-block';
+    document.body.appendChild(newBlockButton);
+    newBlockButton.onclick = newBlock;
+    newBlock();
+};
+    </script>
 </head>
 <body>
 </body>
