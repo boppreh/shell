@@ -169,7 +169,6 @@ function newBlock() {
             if (type === 'text') {
                 if (request.readyState < 4) return;
                 result.innerText = request.responseText;
-                download.style.display = 'inline';
             } else {
                 if (request.readyState !== 2) return;
                 request.abort();
@@ -188,8 +187,9 @@ function newBlock() {
                 }
                 media.src = '/outputs/' + block.id;
                 result.appendChild(media);
-                download.style.display = 'inline';
             }
+            download.style.display = 'inline';
+            input.scrollIntoView();
         };
         request.send(formData);
     }
