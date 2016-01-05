@@ -2,6 +2,29 @@
 <head>
 	<title>Title</title>
 	<meta charset="utf-8">
+	<style>
+body {
+	font: 12px courier,sans-serif;
+}
+
+input {
+	font: inherit;
+}
+
+.input-part {
+	margin-left: 5px;
+	padding: 3px;
+	background: #EEE;
+}
+.input-part::before .input-part::after {
+	content: '  ';
+}
+.result {
+	padding: 10px;
+	margin-bottom: 10px;
+	background: #EEE;
+}
+	</style>
 	<script>
 function run(parts, responseDiv) {
     var formData = new FormData();
@@ -37,6 +60,7 @@ function newBlock() {
 	var result = document.createElement('div')
 
 	var input = document.createElement('input');
+	input.classList.add('input-part')
 	input.type = "text";
 	input.onkeydown = function(e) {
 		if (e.which === 9 || e.which == 13) {
@@ -60,6 +84,7 @@ function newBlock() {
 				}
 			}
 			var replacement = document.createElement('span');
+			replacement.classList.add('input-part');
 			replacement.innerText = input.value;
 			inSpan.replaceChild(replacement, input);
 			input.value = next.innerText;
@@ -78,6 +103,7 @@ function newBlock() {
 	}
 	inSpan.appendChild(input);
 
+	result.classList.add('result');
 	result.id = 'result' + n;
 	result.innerText = 'Result';
 	block.appendChild(result);
