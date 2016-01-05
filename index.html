@@ -4,11 +4,14 @@
     <meta charset="utf-8">
     <style>
 body {
+    /*background-color: #101012;*/
+    /*color: #BFB;*/
     font: 12px courier,sans-serif;
 }
 
 input {
     font: inherit;
+    color: inherit;
 }
 
 #btn-new-block {
@@ -20,21 +23,24 @@ input {
 .input-part {
     margin-left: 5px;
     padding: 1px 3px;
-    background: #EEE;
+    background: #DDD;
+    font-weight: bold;
 }
-.input-part::before .input-part::after {
-    content: '  ';
+
+button {
+    margin: 0px 5px;
 }
+
 .result {
-    padding: 10px;
-    margin-top: 5px;
+    border-left: 2px solid;
+    padding-left: 4px;
+    margin-top: 3px;
     margin-bottom: 10px;
-    background: #EEE;
     white-space: pre;
 }
 
 .block-number {
-    color: #A11;
+    color: #A00;
     font: bold 14px sans-serif;
 }
     </style>
@@ -71,6 +77,7 @@ function newPart() {
         input.value = part.innerText;
         part.parentNode.replaceChild(input, part);
         input.focus();
+        input.select();
     }
     return part;
 }
