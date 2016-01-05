@@ -106,7 +106,8 @@ function newBlock() {
     download.href = '/outputs/' + block.id;
     download.download = block.id;
     download.classList.add('download');
-    download.innerText = 'download'
+    download.innerText = 'download';
+    download.style.display = 'none';
     block.appendChild(download);
 
     var first = newPart();
@@ -135,13 +136,13 @@ function newBlock() {
         request.onreadystatechange = function(e) {
             var header = request.getResponseHeader('Content-Type');
             if (header === null) return;
-            console.log(header);
 
             var type = header.split('/')[0];
 
             if (type === 'text') {
                 if (request.readyState < 4) return;
                 result.innerText = request.responseText;
+                download.style.display = 'inline';
             } else {
                 if (request.readyState !== 2) return;
                 request.abort();
@@ -154,9 +155,12 @@ function newBlock() {
                 } else if (type === 'audio') {
                     media = document.createElement('audio');
                     media.controls = true;
+                } else {
+                    alert('Unknown media type ' + header);
                 }
                 media.src = '/outputs/' + block.id;
                 result.appendChild(media);
+                download.style.display = 'inline';
             }
         };
         request.send(formData);
