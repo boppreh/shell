@@ -25,7 +25,7 @@ if __name__ == '__main__':
 		try:
 			data = json.loads(flask.request.form['data'])
 			first, *rest = filter(len, data['parts'])
-			output = subprocess.check_output(first.split() + rest, stderr=subprocess.STDOUT)
+			output = subprocess.check_output(first.split() + rest, stderr=subprocess.STDOUT, shell=True)
 
 			try:
 				type = next(filter(bool, sum(map(mimetypes.guess_type, rest), ())))
