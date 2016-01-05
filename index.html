@@ -13,7 +13,7 @@ input {
 
 .input-part {
 	margin-left: 5px;
-	padding: 3px;
+	padding: 1px 3px;
 	background: #EEE;
 }
 .input-part::before .input-part::after {
@@ -21,6 +21,7 @@ input {
 }
 .result {
 	padding: 10px;
+	margin-top: 5px;
 	margin-bottom: 10px;
 	background: #EEE;
 }
@@ -45,10 +46,53 @@ function run(parts, responseDiv) {
 	};
     request.send(formData);
 }
-var allBlocks = [];
-function newBlock() {
-	var n = allBlocks.length + 1;
 
+function newPart() {
+	var part = document.createElement('span');
+	part.classList.add('input-part')
+	part.onclick = function(e) {
+		if (input.parentNode !== null) {
+			var replacement = newPart();
+			replacement.innerText = input.value;
+			input.parentNode.replaceChild(replacement, input);
+		}
+		input.value = part.innerText;
+		part.parentNode.replaceChild(input, part);
+		input.focus();
+	}
+	return part;
+}
+
+var input = document.createElement('input');
+input.classList.add('input-part')
+input.type = 'text';
+input.onkeydown = function(e) {
+	if (e.which === 9) {
+		e.preventDefault();
+		if (!e.shiftKey) {
+			if (!input.nextSibling) {
+				input.parentNode.appendChild(newPart());
+			}
+			input.nextSibling.onclick();
+		} else {
+			input.previousSibling && input.previousSibling.onclick();
+		}
+	}
+	if (e.which === 13) {
+		var inSpan = input.parentNode;
+		newBlock();
+
+		var parts = [];
+		for (var i = 0; i < inSpan.children.length; i++) {
+			parts.push(inSpan.children[i].innerText);
+		}
+		run(parts, inSpan.nextSibling);
+	}
+}
+
+var n = 0;
+function newBlock() {
+	n++;
 	var block = document.createElement('div');
 
 	var number = document.createElement('span');
@@ -59,65 +103,17 @@ function newBlock() {
 	var inSpan = document.createElement('span');
 	block.appendChild(inSpan);
 
-	var first = document.createElement('span');
+	var first = newPart();
 	inSpan.appendChild(first);
 
-	var result = document.createElement('div')
-
-	var input = document.createElement('input');
-	input.classList.add('input-part')
-	input.type = "text";
-	input.onkeydown = function(e) {
-		if (e.which === 9 || e.which == 13) {
-			e.preventDefault();
-
-			var input = e.target;
-			var next = null;
-			if (e.shiftKey) {
-				var next = input.previousElementSibling;
-				if (next === null) {
-					return;
-				}
-			} else {
-				var next = input.nextElementSibling;
-				if (next === null) {
-					if (input.value === '') {
-						return;
-					}
-					next = document.createElement('span');
-					inSpan.appendChild(next);
-				}
-			}
-			var replacement = document.createElement('span');
-			replacement.classList.add('input-part');
-			replacement.innerText = input.value;
-			inSpan.replaceChild(replacement, input);
-			input.value = next.innerText;
-			inSpan.replaceChild(input, next);
-			input.focus()
-		}
-
-		if (e.which === 13) {
-			var parts = [];
-			for (var i = 1; i < inSpan.children.length-1; i++) {
-				parts.push(inSpan.children[i].innerText);
-			}
-			run(parts, result);
-			newBlock();
-		}
-	}
-	inSpan.appendChild(input);
-
+	var result = document.createElement('pre');
 	result.classList.add('result');
 	result.id = 'result' + n;
-	result.innerText = 'Result';
 	block.appendChild(result);
 
 	document.body.appendChild(block);
 
-	input.focus();
-
-	allBlocks.push(block);
+	first.onclick();
 }
 window.onload = newBlock;
 	</script>
