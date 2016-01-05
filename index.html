@@ -39,6 +39,26 @@ input {
 }
     </style>
     <script>
+function setupMouseResize(img) {
+    img.draggable = false;
+    img.onmousedown = function(e) {
+        img.initialWidth = img.width;
+        img.initialHeight = img.height;
+        function onmove(e2) {
+            var scale = Math.max(0.01, Math.min(e2.clientX / e.clientX, e2.clientY / e.clientY));
+
+            img.width = scale * img.initialWidth;
+            img.height = scale * img.initialHeight;
+        }
+        function onup() {
+            window.removeEventListener('mousemove', onmove);
+            window.removeEventListener('mouseup', onup);
+        }
+        window.addEventListener('mousemove', onmove);
+        window.addEventListener('mouseup', onup);
+    }
+}
+
 function newPart() {
     var part = document.createElement('span');
     part.classList.add('input-part')
@@ -149,6 +169,7 @@ function newBlock() {
                 var media;
                 if (type === 'image') {
                     media = document.createElement('img');
+                    setupMouseResize(media);
                 } else if (type === 'video') {
                     media = document.createElement('video');
                     media.controls = true;
