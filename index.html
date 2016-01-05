@@ -78,11 +78,11 @@ input.onkeydown = function(e) {
 
 var n = 0;
 function newBlock() {
-    n++;
     var block = document.createElement('div');
+    block.id = ++n;
 
     var number = document.createElement('span');
-    number.innerText = '#' + n;
+    number.innerText = '#' + block.id;
     number.classList.add('block-number');
     block.appendChild(number);
 
@@ -103,8 +103,8 @@ function newBlock() {
     block.appendChild(run);
 
     var download = document.createElement('a');
-    download.href = '/outputs/' + n;
-    download.download = n;
+    download.href = '/outputs/' + block.id;
+    download.download = block.id;
     download.classList.add('download');
     download.innerText = 'download'
     block.appendChild(download);
@@ -114,7 +114,7 @@ function newBlock() {
 
     var result = document.createElement('div');
     result.classList.add('result');
-    result.id = 'result' + n;
+    result.id = 'result' + block.id;
     block.appendChild(result);
 
     block.run = run.onclick = function() {
@@ -126,16 +126,38 @@ function newBlock() {
         document.title = parts.join(' ');
 
         var formData = new FormData();
-        formData.append('data', JSON.stringify({id: n, parts: parts}));
+        formData.append('data', JSON.stringify({id: block.id, parts: parts}));
         var request = new XMLHttpRequest();
         request.open('POST', '/run', true);
-        request.innerText = '...';
-        request.onreadystatechange = function() {
-            if (request.readyState < 4) {
-                return;
-            }
+        while (result.children.length) {
+            result.remove(result.children[0]);
+        }
+        request.onreadystatechange = function(e) {
+            var header = request.getResponseHeader('Content-Type');
+            if (header === null) return;
+            console.log(header);
 
-            result.innerText = request.responseText;
+            var type = header.split('/')[0];
+
+            if (type === 'text') {
+                if (request.readyState < 4) return;
+                result.innerText = request.responseText;
+            } else {
+                if (request.readyState !== 2) return;
+                request.abort();
+                var media;
+                if (type === 'image') {
+                    media = document.createElement('img');
+                } else if (type === 'video') {
+                    media = document.createElement('video');
+                    media.controls = true;
+                } else if (type === 'audio') {
+                    media = document.createElement('audio');
+                    media.controls = true;
+                }
+                media.src = '/outputs/' + block.id;
+                result.appendChild(media);
+            }
         };
         request.send(formData);
     }

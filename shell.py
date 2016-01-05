@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
 	@app.route('/outputs/<id>')
 	def get_output(id):
-		output, mimetype = blocks[int(id)]
+		output, mimetype = blocks[id]
 		return flask.Response(output, mimetype=mimetype)
 
 	@app.route('/run', methods=['POST'])
@@ -26,18 +26,17 @@ if __name__ == '__main__':
 			data = json.loads(flask.request.form['data'])
 			first, *rest = filter(len, data['parts'])
 			output = subprocess.check_output(first.split() + rest, stderr=subprocess.STDOUT)
-			try:
-				value = output.decode('utf-8')
-			except UnicodeError:
-				value = '{} bytes'.format(len(output))
 
 			try:
-				type, *_ = filter(bool, sum(map(mimetypes.guess_type, rest), ()))
-			except ValueError:
+				type = next(filter(bool, sum(map(mimetypes.guess_type, rest), ())))
+			except StopIteration:
 				type = None
-			blocks[data['id']] = (output, type)
-			return get_output(data['id'])
+			id = data['id']
+			blocks[id] = (output, type)
+			print(blocks.keys())
+
+			return get_output(id)
 		except Exception as e:
-			return 'Shell error: {}'.format(e)
+			return 'Shell {}: {}'.format(e.__class__.__name__, e)
 
 	app.run(port=80, debug=True)
