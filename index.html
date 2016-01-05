@@ -30,6 +30,7 @@ input {
     margin-top: 5px;
     margin-bottom: 10px;
     background: #EEE;
+    white-space: pre;
 }
 
 .block-number {
@@ -101,13 +102,19 @@ function newBlock() {
     run.innerText = '>'
     block.appendChild(run);
 
+    var download = document.createElement('a');
+    download.href = '/outputs/' + n;
+    download.download = n;
+    download.classList.add('download');
+    download.innerText = 'download'
+    block.appendChild(download);
+
     var first = newPart();
     inSpan.appendChild(first);
 
-    var result = document.createElement('pre');
+    var result = document.createElement('div');
     result.classList.add('result');
     result.id = 'result' + n;
-    result.collapsed = '';
     block.appendChild(result);
 
     block.run = run.onclick = function() {
@@ -116,9 +123,10 @@ function newBlock() {
             var child = inSpan.children[i];
             parts.push(child.innerText || child.value);
         }
+        document.title = parts.join(' ');
 
         var formData = new FormData();
-        formData.append('data', JSON.stringify(parts));
+        formData.append('data', JSON.stringify({id: n, parts: parts}));
         var request = new XMLHttpRequest();
         request.open('POST', '/run', true);
         request.innerText = '...';
@@ -132,9 +140,10 @@ function newBlock() {
         request.send(formData);
     }
     number.onclick = function() {
-        var temp = result.collapsed;
-        result.collapsed = result.innerText;
-        result.innerText = temp;
+        if (result.style.display == 'none')
+            result.style.display = 'block';
+        else
+            result.style.display = 'none';
     }
 
     document.body.appendChild(block);
