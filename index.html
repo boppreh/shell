@@ -235,8 +235,13 @@ function loadSession() {
         }
 
         var session = JSON.parse(client.responseText);
+        var created = false;
         for (var id in session) {
             newBlock(id, session[id], true);
+            created = true;
+        }
+        if (!created) {
+            newBlock();
         }
     }
     client.send();
