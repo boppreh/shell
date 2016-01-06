@@ -103,11 +103,11 @@ input.onkeydown = function(e) {
         block.run();
         newBlock();
     }
-    if (e.which == 38) {
-        block.previousSibling.children[2].children[0].onclick();
+    if (e.which == 38 && block.previousSibling) {
+        block.previousSibling.select();
         e.preventDefault();
-    } else if (e.which == 40) {
-        block.nextSibling.children[2].children[0].onclick();
+    } else if (e.which == 40 && block.nextSibling) {
+        block.nextSibling.select();
         e.preventDefault();
     }
 
@@ -133,9 +133,9 @@ function newBlock(number, inputParts, runCached) {
     block.remove = remove.onclick = function() {
         if (inSpan.contains(input)) {
             if (block.parentNode.lastChild !== block) {
-                block.nextSibling.children[2].children[0].onclick();
+                block.nextSibling.select();
             } else if (block.parentNode.firstChild !== block) {
-                block.previousSibling.children[2].children[0].onclick();
+                block.previousSibling.select();
             } else {
                 newBlock();
             }
@@ -241,6 +241,7 @@ function newBlock(number, inputParts, runCached) {
             runCached = false;
         }
     }
+    block.select = function() { inSpan.firstChild.onclick() };
 }
 function loadSession() {
     var client = new XMLHttpRequest();
