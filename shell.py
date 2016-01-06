@@ -35,11 +35,11 @@ if __name__ == '__main__':
 	def run():
 		try:
 			data = json.loads(flask.request.form['data'])
-			id = data['id']
+			id = int(data['id'])
 			if data.get('cached', False):
 				return get_output(id)
 
-			first, *rest = filter(len, data['parts'])
+			first, *rest = filter(bool, data['parts'])
 			command = first.split() + rest
 			output = subprocess.check_output(command,
 				stderr=subprocess.STDOUT,

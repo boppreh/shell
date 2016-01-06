@@ -101,6 +101,13 @@ input.onkeydown = function(e) {
         input.parentNode.parentNode.run();
         newBlock();
     }
+    if (e.which == 38) {
+        input.parentNode.parentNode.previousSibling.children[2].children[0].onclick();
+        input.preventDefault();
+    } else if (e.which == 40) {
+        input.parentNode.parentNode.nextSibling.children[2].children[0].onclick();
+        input.preventDefault();
+    }
 }
 
 function newBlock(number, inputParts, runCached) {
