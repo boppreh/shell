@@ -35,7 +35,7 @@ if __name__ == '__main__':
 	def run():
 		try:
 			data = json.loads(flask.request.form['data'])
-			id = data['id']
+			id = str(data['id'])
 			if data.get('cached', False):
 				return get_output(id)
 
@@ -51,6 +51,7 @@ if __name__ == '__main__':
 				type = None
 
 			blocks[id] = Block(command, output, type)
+			print(repr(id))
 
 			return get_output(id)
 		except Exception as e:
