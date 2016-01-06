@@ -56,4 +56,4 @@ if __name__ == '__main__':
 		except Exception as e:
 			return 'Shell {}: {}'.format(e.__class__.__name__, e)
 
-	app.run(port=80, debug=True)
+	app.run(port=80, debug=True, threaded=True)
