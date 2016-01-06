@@ -6,6 +6,9 @@ if __name__ == '__main__':
 	import subprocess
 	import mimetypes
 	from os.path import splitext
+	from collections import namedtuple
+
+	Block = namedtuple('Block', ['input', 'output', 'inferred_type'])
 
 	app = flask.Flask(__name__)
 	events_queue = Queue()
@@ -17,23 +20,26 @@ if __name__ == '__main__':
 
 	@app.route('/outputs/<id>')
 	def get_output(id):
-		output, mimetype = blocks[id]
-		return flask.Response(output, mimetype=mimetype)
+		block = blocks[id]
+		return flask.Response(block.output, mimetype=block.inferred_type)
 
 	@app.route('/run', methods=['POST'])
 	def run():
 		try:
 			data = json.loads(flask.request.form['data'])
 			first, *rest = filter(len, data['parts'])
-			output = subprocess.check_output(first.split() + rest, stderr=subprocess.STDOUT, shell=True)
+			command = first.split() + rest
+			output = subprocess.check_output(command,
+				stderr=subprocess.STDOUT,
+				shell=True)
 
 			try:
 				type = next(filter(bool, sum(map(mimetypes.guess_type, rest), ())))
 			except StopIteration:
 				type = None
+
 			id = data['id']
-			blocks[id] = (output, type)
-			print(blocks.keys())
+			blocks[id] = Block(command, output, type)
 
 			return get_output(id)
 		except Exception as e:
