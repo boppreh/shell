@@ -20,7 +20,7 @@ if __name__ == '__main__':
 
 	@app.route('/outputs/<id>')
 	def get_output(id):
-		block = blocks[id]
+		block = blocks[int(id)]
 		return flask.Response(block.output, mimetype=block.inferred_type)
 
 	@app.route('/remove/<id>')
@@ -35,7 +35,7 @@ if __name__ == '__main__':
 	def run():
 		try:
 			data = json.loads(flask.request.form['data'])
-			id = str(data['id'])
+			id = data['id']
 			if data.get('cached', False):
 				return get_output(id)
 
