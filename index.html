@@ -103,13 +103,12 @@ input.onkeydown = function(e) {
     }
 }
 
-var n = 0;
-function newBlock() {
+function newBlock(number, inputParts, runCached) {
     var block = document.createElement('div');
-    block.id = ++n;
+    block.number = number || document.body.lastChild.number + 1 || 1;
 
     var number = document.createElement('span');
-    number.innerText = '#' + block.id;
+    number.innerText = '#' + block.number;
     number.classList.add('block-number');
     block.appendChild(number);
 
@@ -119,6 +118,9 @@ function newBlock() {
     block.appendChild(remove);
     remove.onclick = function() {
         block.parentNode.removeChild(block);
+        var client = new XMLHttpRequest();
+        client.open('GET', '/remove/' + block.number);
+        client.send();
     }
 
     var inSpan = document.createElement('span');
@@ -130,19 +132,16 @@ function newBlock() {
     block.appendChild(run);
 
     var download = document.createElement('a');
-    download.href = '/outputs/' + block.id;
-    download.download = block.id;
+    download.href = '/outputs/' + block.number;
+    download.download = block.number;
     download.classList.add('download');
     download.innerText = 'download';
     download.style.display = 'none';
     block.appendChild(download);
 
-    var first = newPart();
-    inSpan.appendChild(first);
-
     var result = document.createElement('div');
     result.classList.add('result');
-    result.id = 'result' + block.id;
+    result.id = 'result' + block.number;
     block.appendChild(result);
 
     block.run = run.onclick = function() {
@@ -154,7 +153,7 @@ function newBlock() {
         document.title = parts.join(' ');
 
         var formData = new FormData();
-        formData.append('data', JSON.stringify({id: block.id, parts: parts}));
+        formData.append('data', JSON.stringify({id: block.number, parts: parts, cached: runCached}));
         var request = new XMLHttpRequest();
         request.open('POST', '/run', true);
         while (result.children.length) {
@@ -185,7 +184,7 @@ function newBlock() {
                 } else {
                     alert('Unknown media type ' + header);
                 }
-                media.src = '/outputs/' + block.id;
+                media.src = '/outputs/' + block.number;
                 result.appendChild(media);
             }
             download.style.display = 'inline';
@@ -202,15 +201,45 @@ function newBlock() {
 
     document.body.appendChild(block);
 
-    first.onclick();
+    if (inputParts === undefined) {
+        var first = newPart();
+        inSpan.appendChild(first);
+        first.onclick();
+    } else {
+        for (var i = 0; i < inputParts.length; i++) {
+            var part = newPart();
+            part.innerText = inputParts[i];
+            inSpan.appendChild(part);
+        }
+        if (runCached) {
+            block.run();
+            runCached = false;
+        }
+    }
+}
+function loadSession() {
+    var client = new XMLHttpRequest();
+    client.open('GET', '/session');
+    client.onreadystatechange = function() {
+        if (client.readyState < 4) {
+            return;
+        }
+
+        var session = JSON.parse(client.responseText);
+        for (var id in session) {
+            newBlock(id, session[id], true);
+        }
+    }
+    client.send();
 }
 window.onload = function() {
     var newBlockButton = document.createElement('button');
     newBlockButton.innerText = '+';
     newBlockButton.id = 'btn-new-block';
     document.body.appendChild(newBlockButton);
-    newBlockButton.onclick = newBlock;
-    newBlock();
+    newBlockButton.onclick = function(e) { newBlock() };
+
+    loadSession();
 };
     </script>
 </head>

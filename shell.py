@@ -23,10 +23,22 @@ if __name__ == '__main__':
 		block = blocks[id]
 		return flask.Response(block.output, mimetype=block.inferred_type)
 
+	@app.route('/remove/<id>')
+	def remove_output(id):
+		del blocks[id]
+
+	@app.route('/session')
+	def get_session():
+		return json.dumps({id: block.input for id, block in blocks.items()})
+
 	@app.route('/run', methods=['POST'])
 	def run():
 		try:
 			data = json.loads(flask.request.form['data'])
+			id = data['id']
+			if data.get('cached', False):
+				return get_output(id)
+
 			first, *rest = filter(len, data['parts'])
 			command = first.split() + rest
 			output = subprocess.check_output(command,
@@ -38,7 +50,6 @@ if __name__ == '__main__':
 			except StopIteration:
 				type = None
 
-			id = data['id']
 			blocks[id] = Block(command, output, type)
 
 			return get_output(id)
