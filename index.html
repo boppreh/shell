@@ -112,7 +112,6 @@ input.onkeydown = function(e) {
     }
 
     if (e.which === 27) {
-        block.nextSibling.children[2].children[0].onclick();
         block.remove();
         e.preventDefault();
     }
@@ -120,7 +119,7 @@ input.onkeydown = function(e) {
 
 function newBlock(number, inputParts, runCached) {
     var block = document.createElement('div');
-    block.number = number || document.body.lastChild.number + 1 || 1;
+    block.number = number || document.getElementById('blocks').lastChild.number + 1 || 1;
 
     var number = document.createElement('span');
     number.innerText = '#' + block.number;
@@ -132,6 +131,15 @@ function newBlock(number, inputParts, runCached) {
     remove.innerText = 'x'
     block.appendChild(remove);
     block.remove = remove.onclick = function() {
+        if (inSpan.contains(input)) {
+            if (block.parentNode.lastChild !== block) {
+                block.nextSibling.children[2].children[0].onclick();
+            } else if (block.parentNode.firstChild !== block) {
+                block.previousSibling.children[2].children[0].onclick();
+            } else {
+                newBlock();
+            }
+        }
         block.parentNode.removeChild(block);
         var client = new XMLHttpRequest();
         client.open('GET', '/remove/' + block.number);
@@ -216,7 +224,7 @@ function newBlock(number, inputParts, runCached) {
             result.style.display = 'none';
     }
 
-    document.body.appendChild(block);
+    document.getElementById('blocks').appendChild(block);
 
     if (inputParts === undefined) {
         var first = newPart();
@@ -255,7 +263,7 @@ window.onload = function() {
     var newBlockButton = document.createElement('button');
     newBlockButton.innerText = '+';
     newBlockButton.id = 'btn-new-block';
-    document.body.appendChild(newBlockButton);
+    document.getElementById('controls').appendChild(newBlockButton);
     newBlockButton.onclick = function(e) { newBlock() };
 
     loadSession();
@@ -263,5 +271,7 @@ window.onload = function() {
     </script>
 </head>
 <body>
+<div id="blocks"></div>
+<div id="controls"></div>
 </body>
 </html>
