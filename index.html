@@ -236,7 +236,7 @@ function loadSession() {
 
         var session = JSON.parse(client.responseText);
         for (var id in session) {
-            newBlock(id, session[id], true);
+            newBlock(id|0, session[id], true);
         }
 
         newBlock();
