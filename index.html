@@ -117,9 +117,11 @@ input.onkeydown = function(e) {
     }
 }
 
-function newBlock(number, inputParts, runCached) {
+function newBlock(number, inputParts, submitted) {
     var block = document.createElement('div');
-    block.number = number || document.getElementById('blocks').lastChild.number + 1 || 1;
+    var lastBlock = document.getElementById('blocks').lastChild;
+    block.number = number || (lastBlock && lastBlock.number + 1) || 1;
+    block.submitted = submitted;
 
     var number = document.createElement('span');
     number.innerText = '#' + block.number;
@@ -141,9 +143,11 @@ function newBlock(number, inputParts, runCached) {
             }
         }
         block.parentNode.removeChild(block);
-        var client = new XMLHttpRequest();
-        client.open('GET', '/remove/' + block.number);
-        client.send();
+        if (block.submitted) {
+            var client = new XMLHttpRequest();
+            client.open('GET', '/remove/' + block.number);
+            client.send();
+        }
     }
 
     var inSpan = document.createElement('span');
@@ -173,10 +177,13 @@ function newBlock(number, inputParts, runCached) {
             var child = inSpan.children[i];
             parts.push(child.innerText || child.value);
         }
+        if (parts.length === 1 && parts[0] === '') {
+            return;
+        }
         document.title = parts.join(' ');
 
         var formData = new FormData();
-        formData.append('data', JSON.stringify({id: block.number, parts: parts, cached: runCached}));
+        formData.append('data', JSON.stringify({id: block.number, parts: parts, cached: submitted}));
         var request = new XMLHttpRequest();
         request.open('POST', '/run', true);
         while (result.children.length) {
@@ -236,9 +243,9 @@ function newBlock(number, inputParts, runCached) {
             part.innerText = inputParts[i];
             inSpan.appendChild(part);
         }
-        if (runCached) {
+        if (submitted) {
             block.run();
-            runCached = false;
+            submitted = false;
         }
     }
     block.select = function() { inSpan.firstChild.onclick() };

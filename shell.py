@@ -69,7 +69,6 @@ if __name__ == '__main__':
             blocks[id] = Block(command, None, type, proc)
             output, _ = proc.communicate()
             blocks[id] = Block(command, output, type, None)
-            
 
             return get_output(id)
         except Exception as e:
