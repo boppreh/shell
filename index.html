@@ -40,7 +40,7 @@ button {
 }
 
 .block-number {
-    color: #A00;
+    color: #000;
     font: bold 14px sans-serif;
 }
     </style>
@@ -159,6 +159,7 @@ function newBlock(number, inputParts, runCached) {
         while (result.children.length) {
             result.remove(result.children[0]);
         }
+        number.style.color = '#000';
         request.onreadystatechange = function(e) {
             var header = request.getResponseHeader('Content-Type');
             if (header === null) return;
@@ -188,6 +189,7 @@ function newBlock(number, inputParts, runCached) {
                 result.appendChild(media);
             }
             download.style.display = 'inline';
+            number.style.color = '#0B0';
             input.scrollIntoView();
         };
         request.send(formData);
