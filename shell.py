@@ -45,6 +45,10 @@ if __name__ == '__main__':
         try:
             data = json.loads(flask.request.form['data'])
             id = int(data['id'])
+            
+            if id in blocks:
+                remove_output(id)
+
             if data.get('cached', False):
                 return get_output(id)
 

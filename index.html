@@ -121,7 +121,7 @@ function newBlock(number, inputParts, runCached) {
 
     var remove = document.createElement('button');
     remove.classList.add('remove');
-    remove.innerText = '-'
+    remove.innerText = 'x'
     block.appendChild(remove);
     remove.onclick = function() {
         block.parentNode.removeChild(block);
