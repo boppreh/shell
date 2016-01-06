@@ -51,7 +51,6 @@ if __name__ == '__main__':
 				type = None
 
 			blocks[id] = Block(command, output, type)
-			print(repr(id))
 
 			return get_output(id)
 		except Exception as e:
