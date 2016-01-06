@@ -8,12 +8,17 @@ if __name__ == '__main__':
     import mimetypes
     from os.path import splitext
     from collections import namedtuple
+    import pickle
+    import atexit
 
     Block = namedtuple('Block', ['input', 'output', 'inferred_type', 'proc'])
 
     app = flask.Flask(__name__)
     events_queue = Queue()
-    blocks = {}
+    try:
+        blocks = pickle.load(open('session.pickle', 'rb'))
+    except IOError:
+        blocks = {}
 
     @app.route('/')
     def root():
@@ -45,9 +50,9 @@ if __name__ == '__main__':
         try:
             data = json.loads(flask.request.form['data'])
             id = int(data['id'])
-            
-            if id in blocks:
-                remove_output(id)
+
+            if id in blocks and blocks[id].proc:
+                blocks[id].proc.kill()
 
             if data.get('cached', False):
                 return get_output(id)
@@ -64,10 +69,17 @@ if __name__ == '__main__':
             blocks[id] = Block(command, None, type, proc)
             output, _ = proc.communicate()
             blocks[id] = Block(command, output, type, None)
+            
 
             return get_output(id)
         except Exception as e:
             raise e
             return 'Shell {}: {}'.format(e.__class__.__name__, e)
 
-    app.run(port=80, debug=True, threaded=True)
+    def persist():
+        print(blocks)
+        with open('session.pickle', 'wb') as f:
+            pickle.dump(blocks, f)
+    atexit.register(persist)
+
+    app.run(port=80, threaded=True)
