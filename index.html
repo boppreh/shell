@@ -198,6 +198,11 @@ function newBlock(number, inputParts, submitted) {
 
             if (type === 'text') {
                 if (request.readyState < 4) return;
+                if (request.responseText === '') {
+                    result.style.display == 'none';
+                } else {
+                    result.style.display == 'block';
+                }
                 result.innerText = request.responseText;
             } else {
                 if (request.readyState !== 2) return;
@@ -223,6 +228,7 @@ function newBlock(number, inputParts, submitted) {
             input.scrollIntoView();
         };
         request.send(formData);
+        block.submitted = true;
     }
     number.onclick = function() {
         if (result.style.display == 'none')
