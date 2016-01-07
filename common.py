@@ -1,7 +1,7 @@
 import subprocess
 def run_command(command, on_start, on_end):
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
-    on_start(proc)
+    on_start(proc.kill)
     output, _ = proc.communicate()
     on_end(output)
 

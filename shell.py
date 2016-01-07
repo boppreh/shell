@@ -10,7 +10,7 @@ if __name__ == '__main__':
     import pickle
     import atexit
 
-    Block = namedtuple('Block', ['input', 'output', 'inferred_type', 'proc'])
+    Block = namedtuple('Block', ['input', 'output', 'inferred_type', 'kill'])
 
     app = flask.Flask(__name__)
     events_queue = Queue()
@@ -35,8 +35,8 @@ if __name__ == '__main__':
     @app.route('/remove/<id>')
     def remove_output(id):
         id = int(id)
-        if blocks[id].proc:
-            blocks[id].proc.kill()
+        if blocks[id].kill:
+            blocks[id].kill()
         del blocks[id]
         return ''
 
@@ -50,19 +50,19 @@ if __name__ == '__main__':
             data = json.loads(flask.request.form['data'])
             id = int(data['id'])
 
-            if id in blocks and blocks[id].proc:
-                blocks[id].proc.kill()
-
             if data.get('cached', False):
                 return get_output(id)
+
+            if id in blocks:
+                remove_output(id)
 
             first, *rest = filter(bool, data['parts'])
             command = first.split() + rest
 
             type = guess_mime_type(rest)
 
-            def on_start(proc):
-                blocks[id] = Block(command, None, type, proc)
+            def on_start(kill):
+                blocks[id] = Block(command, None, type, kill)
             def on_end(output):
                 blocks[id] = Block(command, output, type, None)
             run_command(command, on_start, on_end)
