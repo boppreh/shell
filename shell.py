@@ -1,5 +1,5 @@
-from common import run_command, is_threaded, is_debug
-#from uncommon import run_command, is_threaded, is_debug
+import common
+import uncommon
 
 import time
 import flask
@@ -76,6 +76,12 @@ def run():
         def on_end(output):
             blocks[id] = Block(command, output, type, None)
         context = {id: b.output for id, b in blocks.items() if b.output is not PENDING}
+        if command[0].startswith('!'):
+            command[0] = command[0][1:]
+            run_command = uncommon.run_command
+        else:
+            command = command[0].split() + command[1:]
+            run_command = common.run_command
         run_command(command, on_type, on_start, on_end, context=context)
         return get_output(id)
     except Exception as e:
@@ -87,4 +93,4 @@ def persist():
         pickle.dump(blocks, f)
 atexit.register(persist)
 
-app.run(port=80, debug=is_debug, threaded=is_threaded)
+app.run(port=80, threaded=True)
