@@ -223,7 +223,7 @@ function newBlock(number, inputParts, submitted) {
                 media.src = '/outputs/' + block.number;
                 result.appendChild(media);
             }
-            download.style.display = 'inline';
+            download.style.display = request.responseText ? 'inline' : 'none';
             number.style.color = '#0B0';
             input.scrollIntoView();
         };
