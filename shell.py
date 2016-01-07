@@ -1,4 +1,5 @@
-from common import run_command, guess_mime_type
+#from common import run_command, is_threaded, is_debug
+from uncommon import run_command, is_threaded, is_debug
 
 if __name__ == '__main__':
     import time
@@ -27,7 +28,7 @@ if __name__ == '__main__':
     def get_output(id):
         while True:
             block = blocks[int(id)]
-            while not block.output:
+            while block.output is None:
                 time.sleep(0.5)
                 continue
             return flask.Response(block.output, mimetype=block.inferred_type)
@@ -58,14 +59,15 @@ if __name__ == '__main__':
 
             first, *rest = filter(bool, data['parts'])
             command = first.split() + rest
+            type = None
 
-            type = guess_mime_type(rest)
-
+            def on_type(t):
+                type = t
             def on_start(kill):
                 blocks[id] = Block(command, None, type, kill)
             def on_end(output):
                 blocks[id] = Block(command, output, type, None)
-            run_command(command, on_start, on_end)
+            run_command(command, on_type, on_start, on_end)
             return get_output(id)
         except Exception as e:
             raise e
@@ -76,4 +78,4 @@ if __name__ == '__main__':
             pickle.dump(blocks, f)
     atexit.register(persist)
 
-    app.run(port=80, threaded=True)
+    app.run(port=80, debug=is_debug, threaded=is_threaded)
