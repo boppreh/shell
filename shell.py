@@ -57,10 +57,9 @@ if __name__ == '__main__':
             if id in blocks:
                 remove_output(id)
 
-            first, *rest = filter(bool, data['parts'])
-            command = first.split() + rest
+            command = [p for p in data['parts'] if p]
+            
             type = None
-
             def on_type(t):
                 type = t
             def on_start(kill):
