@@ -1,12 +1,11 @@
+from common import run_command, guess_mime_type
+
 if __name__ == '__main__':
     import time
     import flask
     from queue import Queue
     import base64
     import json
-    import subprocess
-    import mimetypes
-    from os.path import splitext
     from collections import namedtuple
     import pickle
     import atexit
@@ -28,8 +27,8 @@ if __name__ == '__main__':
     def get_output(id):
         while True:
             block = blocks[int(id)]
-            if not block.output:
-                time.sleep(1)
+            while not block.output:
+                time.sleep(0.5)
                 continue
             return flask.Response(block.output, mimetype=block.inferred_type)
 
@@ -60,23 +59,19 @@ if __name__ == '__main__':
             first, *rest = filter(bool, data['parts'])
             command = first.split() + rest
 
-            try:
-                type = next(filter(bool, sum(map(mimetypes.guess_type, rest), ())))
-            except StopIteration:
-                type = None
+            type = guess_mime_type(rest)
 
-            proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
-            blocks[id] = Block(command, None, type, proc)
-            output, _ = proc.communicate()
-            blocks[id] = Block(command, output, type, None)
-
+            def on_start(proc):
+                blocks[id] = Block(command, None, type, proc)
+            def on_end(output):
+                blocks[id] = Block(command, output, type, None)
+            run_command(command, on_start, on_end)
             return get_output(id)
         except Exception as e:
             raise e
             return 'Shell {}: {}'.format(e.__class__.__name__, e)
 
     def persist():
-        print(blocks)
         with open('session.pickle', 'wb') as f:
             pickle.dump(blocks, f)
     atexit.register(persist)
