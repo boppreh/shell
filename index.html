@@ -126,14 +126,19 @@ input.onkeydown = function(e) {
     if (e.which === 13) {
         if (e.ctrlKey) {
             var first = input.parentNode.firstChild;
-            if (first == input) {
-                input.value = '@' + input.value;
-            } else {
-                first.innerText = '@' + first.innerText
+            var prop = first == input ? 'value' : 'innerText';
+            if (first[prop][0] != '@') {
+                first[prop] = '@' + first[prop];
             }
         }
         block.run();
-        newBlock();
+        var lastFirstPart = document.getElementById('blocks').lastChild.inSpan.firstChild;
+
+        if (lastFirstPart !== input && !lastFirstPart.innerText) {
+            lastFirstPart.onclick();
+        } else {
+            newBlock();
+        }
     }
     if (e.which == 38 && block.previousSibling) {
         block.previousSibling.select();
@@ -248,6 +253,7 @@ function newBlock(number, inputParts, submitted) {
     }
 
     var inSpan = document.createElement('span');
+    block.inSpan = inSpan;
     block.appendChild(inSpan);
 
     var run = document.createElement('button');
@@ -292,7 +298,9 @@ function newBlock(number, inputParts, submitted) {
         }
         document.title = parts.join(' ');
 
-        while (result.firstChild) result.remove(result.firstChild);
+        for (var i = result.children.length - 1; i >= 0; i--) {
+            result.remove(result.children[i]);
+        }
         number.style.color = '#000';
 
         if (parts.length === 1 && parts[0][0] == '!') {
