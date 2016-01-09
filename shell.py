@@ -89,7 +89,10 @@ def run():
             command = command[0].split() + command[1:]
             run_command = common.run_command
         run_command(command, on_type, on_start, on_end, context=context)
-        return ''
+        try:
+            return blocks[id].output.decode('utf-8')
+        except UnicodeError:
+            return ''
     except Exception as e:
         raise e
         return 'Shell {}: {}'.format(e.__class__.__name__, e)

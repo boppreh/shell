@@ -261,12 +261,20 @@ function newBlock(number, inputParts, submitted) {
     result.id = 'result' + block.number;
     block.appendChild(result);
 
-    block.showOutput = function() {
-        showContents('outputs/' + block.number, result, function(isEmpty) {
+    block.showOutput = function(text) {
+        function onFinished(isEmpty) {
             download.style.display = isEmpty ? 'none' : 'inline';
             number.style.color = '#0B0';
             input.scrollIntoView();
-        });
+        }
+        if (text !== undefined) {
+            result.innerText = text;
+            onFinished(text !== '');
+            console.log('direct');
+        } else {
+            showContents('outputs/' + block.number, result, onFinished);
+            console.log('indirect');
+        }
     };
     block.run = run.onclick = function() {
         var parts = [];
