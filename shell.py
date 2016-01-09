@@ -9,6 +9,7 @@ import json
 from collections import namedtuple
 import pickle
 import atexit
+import glob
 
 PENDING = {}
 
@@ -24,6 +25,14 @@ except IOError:
 @app.route('/')
 def root():
     return flask.send_file('index.html')
+
+@app.route('/glob')
+def get_glob():
+    return '\n'.join(glob.glob(flask.request.args['path']))
+
+@app.route('/file')
+def get_file():
+    return flask.send_file(flask.request.args['path'])
 
 @app.route('/outputs/<id>')
 def get_output(id):
@@ -76,14 +85,14 @@ def run():
         def on_end(output):
             blocks[id] = Block(command, output, type, None)
         context = {id: b.output for id, b in blocks.items() if b.output is not PENDING}
-        if command[0].startswith('!'):
+        if command[0].startswith('@'):
             command[0] = command[0][1:]
             run_command = uncommon.run_command
         else:
             command = command[0].split() + command[1:]
             run_command = common.run_command
         run_command(command, on_type, on_start, on_end, context=context)
-        return get_output(id)
+        return ''
     except Exception as e:
         raise e
         return 'Shell {}: {}'.format(e.__class__.__name__, e)
@@ -93,4 +102,4 @@ def persist():
         pickle.dump(blocks, f)
 atexit.register(persist)
 
-app.run(port=80, threaded=True)
+app.run(port=80, threaded=False, debug=True)

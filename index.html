@@ -120,6 +120,59 @@ input.onkeydown = function(e) {
     }
 }
 
+function POST(path, formData, onFinished) {
+    var request = new XMLHttpRequest();
+    request.open('POST', path, true);
+    request.onreadystatechange = function(e) {
+        if (request.readyState >= 4) onFinished();
+    };
+    request.send(formData);
+}
+
+function showContents(path, result, onFinished) {
+    var request = new XMLHttpRequest();
+    request.open('GET', path, true);
+
+    request.onreadystatechange = function(e) {
+        var header = request.getResponseHeader('Content-Type');
+        if (header === null) return;
+
+        var type = header.split('/')[0];
+
+        if (type === 'text') {
+            if (request.readyState < 4) return;
+            if (request.responseText === '') {
+                result.style.display == 'none';
+            } else {
+                result.style.display == 'block';
+            }
+            result.innerText = request.responseText;
+            onFinished();
+        } else {
+            request.abort();
+            var media;
+            if (type === 'image') {
+                media = document.createElement('img');
+                setupMouseResize(media);
+            } else if (type === 'video') {
+                media = document.createElement('video');
+                media.controls = true;
+            } else if (type === 'audio') {
+                media = document.createElement('audio');
+                media.controls = true;
+            } else {
+                alert('Unknown media type ' + header);
+            }
+            media.src = path;
+            result.appendChild(media);
+            onFinished();
+        }
+    };
+
+    request.send();
+}
+
+
 function newBlock(number, inputParts, submitted) {
     var block = document.createElement('div');
     var lastBlock = document.getElementById('blocks').lastChild;
@@ -185,56 +238,23 @@ function newBlock(number, inputParts, submitted) {
         }
         document.title = parts.join(' ');
 
+        while (result.firstChild) result.remove(result.firstChild);
+        number.style.color = '#000';
+
         var formData = new FormData();
         formData.append('data', JSON.stringify({
             id: block.number,
             parts: parts,
             cached: submitted
         }));
-        var request = new XMLHttpRequest();
-        request.open('POST', '/run', true);
-        while (result.children.length) {
-            result.remove(result.children[0]);
-        }
-        number.style.color = '#000';
-        request.onreadystatechange = function(e) {
-            var header = request.getResponseHeader('Content-Type');
-            if (header === null) return;
+        POST('run', formData, function() {
+            showContents('outputs/' + block.number, result, function(isEmpty) {
+                download.style.display = isEmpty ? 'none' : 'inline';
+                number.style.color = '#0B0';
+                input.scrollIntoView();
+            });
+        });
 
-            var type = header.split('/')[0];
-
-            if (type === 'text') {
-                if (request.readyState < 4) return;
-                if (request.responseText === '') {
-                    result.style.display == 'none';
-                } else {
-                    result.style.display == 'block';
-                }
-                result.innerText = request.responseText;
-            } else {
-                if (request.readyState !== 2) return;
-                request.abort();
-                var media;
-                if (type === 'image') {
-                    media = document.createElement('img');
-                    setupMouseResize(media);
-                } else if (type === 'video') {
-                    media = document.createElement('video');
-                    media.controls = true;
-                } else if (type === 'audio') {
-                    media = document.createElement('audio');
-                    media.controls = true;
-                } else {
-                    alert('Unknown media type ' + header);
-                }
-                media.src = '/outputs/' + block.number;
-                result.appendChild(media);
-            }
-            download.style.display = request.responseText ? 'inline' : 'none';
-            number.style.color = '#0B0';
-            input.scrollIntoView();
-        };
-        request.send(formData);
         block.submitted = true;
     }
     number.onclick = function() {
