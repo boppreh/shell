@@ -11,7 +11,7 @@ import pickle
 import atexit
 import glob
 
-PENDING = {}
+PENDING = {'PENDING': 1}
 
 Block = namedtuple('Block', ['input', 'output', 'inferred_type', 'kill'])
 
@@ -36,12 +36,12 @@ def get_file():
 
 @app.route('/outputs/<id>')
 def get_output(id):
+    id = int(id)
     while True:
-        block = blocks[int(id)]
-        while block.output is PENDING:
+        while blocks[id].output is PENDING:
             time.sleep(0.5)
-            continue
-        
+
+        block = blocks[id]
         result = None
         try:
             if isinstance(block.output, bytes):

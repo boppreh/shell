@@ -62,7 +62,6 @@ function setupInlineMedia(media) {
         var scale = Math.min(media.width / originalWidth, media.height / originalHeight);
         media.width = originalWidth * scale;
         media.height = originalHeight * scale;
-        console.log(scale);
     };
 
     media.draggable = false;
@@ -334,7 +333,7 @@ function newBlock(number, inputParts, submitted) {
             part.innerText = inputParts[i];
             inSpan.appendChild(part);
         }
-        if (submitted) {
+        if (block.submitted) {
             block.showOutput();
         }
     }
