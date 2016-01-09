@@ -52,7 +52,9 @@ function setupMouseResize(img) {
         img.initialWidth = img.width;
         img.initialHeight = img.height;
         function onmove(e2) {
-            var scale = Math.max(0.01, Math.min(e2.clientX / e.clientX, e2.clientY / e.clientY));
+            var scaleX = e2.clientX / e.clientX;
+            var scaleY = e2.clientY / e.clientY;
+            var scale = Math.max(0.01, Math.min(scaleX, scaleY));
 
             img.width = scale * img.initialWidth;
             img.height = scale * img.initialHeight;
@@ -184,7 +186,11 @@ function newBlock(number, inputParts, submitted) {
         document.title = parts.join(' ');
 
         var formData = new FormData();
-        formData.append('data', JSON.stringify({id: block.number, parts: parts, cached: submitted}));
+        formData.append('data', JSON.stringify({
+            id: block.number,
+            parts: parts,
+            cached: submitted
+        }));
         var request = new XMLHttpRequest();
         request.open('POST', '/run', true);
         while (result.children.length) {
