@@ -26,7 +26,7 @@ except IOError:
 def root():
     return flask.send_file('index.html')
 
-@app.route('/glob')
+@app.route('/glob', methods=['GET', 'POST'])
 def get_glob():
     return '\n'.join(glob.glob(flask.request.args['path']))
 
@@ -68,9 +68,6 @@ def run():
     try:
         data = json.loads(flask.request.form['data'])
         id = int(data['id'])
-
-        if data.get('cached', False):
-            return get_output(id)
 
         if id in blocks:
             remove_output(id)
