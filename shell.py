@@ -89,12 +89,15 @@ def run():
             command = command[0].split() + command[1:]
             run_command = common.run_command
         run_command(command, on_type, on_start, on_end, context=context)
-        try:
-            return blocks[id].output.decode('utf-8')
-        except UnicodeError:
-            return ''
+
+        output = blocks[id].output;
+        if isinstance(output, bytes):
+            try:
+                return output.decode('utf-8')
+            except UnicodeError:
+                return ''
+        return str(output)
     except Exception as e:
-        raise e
         return 'Shell {}: {}'.format(e.__class__.__name__, e)
 
 def persist():
@@ -102,4 +105,4 @@ def persist():
         pickle.dump(blocks, f)
 atexit.register(persist)
 
-app.run(port=80, threaded=False, debug=True)
+app.run(port=80, threaded=True)

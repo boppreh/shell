@@ -125,6 +125,14 @@ input.onkeydown = function(e) {
         }
     }
     if (e.which === 13) {
+        if (e.ctrlKey) {
+            var first = input.parentNode.firstChild;
+            if (first == input) {
+                input.value = '@' + input.value;
+            } else {
+                first.innerText = '@' + first.innerText
+            }
+        }
         block.run();
         newBlock();
     }
@@ -270,10 +278,8 @@ function newBlock(number, inputParts, submitted) {
         if (text !== undefined) {
             result.innerText = text;
             onFinished(text !== '');
-            console.log('direct');
         } else {
             showContents('outputs/' + block.number, result, onFinished);
-            console.log('indirect');
         }
     };
     block.run = run.onclick = function() {
