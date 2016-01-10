@@ -12,15 +12,10 @@ body {
     padding: 0px;
 }
 
-input {
-    font: inherit;
-    color: inherit;
-    background-color: inherit;
-}
-
 .input-part {
     margin: 0px 3px;
     padding: 0px 3px;
+    min-width: 10px;
     background-color: #222;
     font-weight: bold;
 }
@@ -78,71 +73,6 @@ function setupInlineMedia(media) {
         }
         window.addEventListener('mousemove', onmove);
         window.addEventListener('mouseup', onup);
-    }
-}
-
-function newPart() {
-    var part = document.createElement('span');
-    part.classList.add('input-part')
-    part.onclick = function(e) {
-        if (input.parentNode !== null) {
-            var replacement = newPart();
-            replacement.innerText = input.value;
-            input.parentNode.replaceChild(replacement, input);
-        }
-        input.value = part.innerText;
-        part.parentNode.replaceChild(input, part);
-        input.focus();
-        input.select();
-    }
-    return part;
-}
-
-var input = document.createElement('input');
-input.classList.add('input-part')
-input.type = 'text';
-input.onkeydown = function(e) {
-    var block = input.parentNode.parentNode;
-
-    if (e.which === 9) {
-        e.preventDefault();
-        if (!e.shiftKey) {
-            if (!input.nextSibling) {
-                input.parentNode.appendChild(newPart());
-            }
-            input.nextSibling.onclick();
-        } else {
-            input.previousSibling && input.previousSibling.onclick();
-        }
-    }
-    if (e.which === 13) {
-        if (e.ctrlKey) {
-            var first = input.parentNode.firstChild;
-            var prop = first == input ? 'value' : 'innerText';
-            if (first[prop][0] != '@') {
-                first[prop] = '@' + first[prop];
-            }
-        }
-        block.run();
-        var lastFirstPart = document.getElementById('blocks').lastChild.inSpan.firstChild;
-
-        if (lastFirstPart !== input && !lastFirstPart.innerText) {
-            lastFirstPart.onclick();
-        } else {
-            newBlock();
-        }
-    }
-    if (e.which == 38 && block.previousSibling) {
-        block.previousSibling.select();
-        e.preventDefault();
-    } else if (e.which == 40 && block.nextSibling) {
-        block.nextSibling.select();
-        e.preventDefault();
-    }
-
-    if (e.which === 27) {
-        block.remove();
-        e.preventDefault();
     }
 }
 
@@ -211,6 +141,77 @@ function showGallery(path, finalResult) {
     });
 }
 
+function selectNewBlock() {
+    var lastBlock = document.getElementById('blocks').lastChild;
+    var lastFirstPart = lastBlock.inSpan.firstChild;
+    if (lastFirstPart.innerText === '') {
+        lastFirstPart.focus();
+    } else {
+        newBlock();
+    }
+}
+
+function newInputPart(block, text) {
+    var part = document.createElement('span');
+    part.classList.add('input-part');
+    part.contentEditable = true;
+    part.innerText = text || '';
+    part.onfocus = function(e) {
+        
+    }
+    part.onkeydown = function(e) {
+        if (e.ctrlKey && e.which !== 13) {
+            return;
+        }
+
+        if (e.which === 9) {
+            if (!e.shiftKey && !part.nextSibling) {
+                part.insertAdjacentElement('afterEnd', newInputPart(block));
+            }
+            if (e.shiftKey) {
+                if (!part.previousSibling) {
+                    e.preventDefault();
+                } else if (part.innerText === '') {
+                    part.previousSibling.focus();
+                    part.parentNode.removeChild(part);
+                    e.preventDefault();
+                }
+            }
+        }
+        if (e.which === 13) {
+            if (e.ctrlKey) {
+                var firstPart = block.inSpan.firstChild;
+                if (firstPart.innerText[0] !== '@') {
+                    firstPart.innerText = '@' + firstPart.innerText;
+                }
+            }
+            e.preventDefault();
+            block.run();
+            selectNewBlock();
+        }
+        if (e.which === 27) {
+            if (block.previousSibling) {
+                block.previousSibling.inSpan.firstChild.focus();
+            } else if (block.nextSibling) {
+                block.nextSibling.inSpan.firstChild.focus();
+            } else {
+                selectNewBlock();
+            }
+            block.remove();
+        }
+        if (e.which === 38) {
+            block.previousSibling && block.previousSibling.inSpan.firstChild.focus();
+        } else if (e.which === 40) {
+            if (block.nextSibling) {
+                block.nextSibling.inSpan.firstChild.focus();
+            } else {
+                selectNewBlock();
+            }
+        }
+    };
+    return part;
+}
+
 function newBlock(number, inputParts, submitted) {
     var block = document.createElement('div');
     var lastBlock = document.getElementById('blocks').lastChild;
@@ -223,25 +224,22 @@ function newBlock(number, inputParts, submitted) {
     block.appendChild(number);
 
     block.remove = function() {
-        if (inSpan.contains(input)) {
-            if (block.parentNode.lastChild !== block) {
-                block.nextSibling.select();
-            } else if (block.parentNode.firstChild !== block) {
-                block.previousSibling.select();
-            } else {
-                newBlock();
-            }
-        }
-        block.parentNode.removeChild(block);
         if (block.submitted) {
             var client = new XMLHttpRequest();
             client.open('GET', '/remove/' + block.number);
             client.send();
         }
+        block.parentNode.removeChild(block);
     };
 
     var inSpan = document.createElement('span');
     block.inSpan = inSpan;
+    if (inputParts === undefined) {
+        inputParts = [''];
+    }
+    for (var i = 0; i < inputParts.length; i++) {
+        inSpan.appendChild(newInputPart(block, inputParts[i]));
+    }
     block.appendChild(inSpan);
 
     var download = document.createElement('a');
@@ -250,6 +248,7 @@ function newBlock(number, inputParts, submitted) {
     download.classList.add('download');
     download.innerText = 'download';
     download.style.display = 'none';
+    download.tabIndex = -1;
     block.appendChild(download);
 
     var result = document.createElement('div');
@@ -261,7 +260,6 @@ function newBlock(number, inputParts, submitted) {
         function onFinished(isEmpty) {
             download.style.display = isEmpty ? 'none' : 'inline';
             number.style.color = '#0B0';
-            input.scrollIntoView();
         }
         if (text !== undefined) {
             result.innerText = text;
@@ -273,8 +271,7 @@ function newBlock(number, inputParts, submitted) {
     block.run = function() {
         var parts = [];
         for (var i = 0; i < inSpan.children.length; i++) {
-            var child = inSpan.children[i];
-            parts.push(child.innerText || child.value);
+            parts.push(inSpan.children[i].innerText);
         }
         if (parts.length === 1 && parts[0] === '') {
             return;
@@ -306,29 +303,15 @@ function newBlock(number, inputParts, submitted) {
         block.submitted = true;
     }
     number.onclick = function() {
-        if (result.style.display == 'none')
-            result.style.display = 'block';
-        else
-            result.style.display = 'none';
+        result.style.display = result.style.display == 'none' ? 'block'  : 'none';
+    }
+
+    if (block.submitted) {
+        block.showOutput();
     }
 
     document.getElementById('blocks').appendChild(block);
-
-    if (inputParts === undefined) {
-        var first = newPart();
-        inSpan.appendChild(first);
-        first.onclick();
-    } else {
-        for (var i = 0; i < inputParts.length; i++) {
-            var part = newPart();
-            part.innerText = inputParts[i];
-            inSpan.appendChild(part);
-        }
-        if (block.submitted) {
-            block.showOutput();
-        }
-    }
-    block.select = function() { inSpan.firstChild.onclick() };
+    inSpan.firstChild.focus();
 }
 function loadSession() {
     var client = new XMLHttpRequest();
@@ -343,18 +326,18 @@ function loadSession() {
             newBlock(id|0, session[id], true);
         }
 
-        newBlock();
+        newBlock(0, [''], false);
     }
     client.send();
 }
 window.onload = function() {
-    var newBlockButton = document.createElement('button');
-    newBlockButton.innerText = '+';
-    newBlockButton.id = 'btn-new-block';
-    document.getElementById('controls').appendChild(newBlockButton);
-    newBlockButton.onclick = function(e) { newBlock() };
-
     loadSession();
+    window.onkeydown = function(e) {
+        if (e.which === 32 && !e.target.classList.contains('input-part')) {
+            e.preventDefault();
+            selectNewBlock();
+        }
+    };
 };
     </script>
 </head>
