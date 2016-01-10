@@ -12,6 +12,10 @@ body {
     padding: 0px;
 }
 
+a {
+    color: inherit;
+}
+
 .input-part {
     margin: 0px 3px;
     padding: 0px 3px;
@@ -150,6 +154,7 @@ function selectNewBlock() {
     var lastFirstPart = lastBlock.inSpan.firstChild;
     if (lastFirstPart.innerText === '') {
         lastFirstPart.focus();
+        lastFirstPart.scrollIntoView();
     } else {
         newBlock();
     }
@@ -262,19 +267,12 @@ function newBlock(number, inputParts, submitted) {
     result.id = 'result' + block.number;
     block.appendChild(result);
 
-    block.showOutput = function(text) {
-        function onFinished(isEmpty) {
-            download.style.display = isEmpty ? 'none' : 'inline';
-            number.style.color = '#5F5';
-        }
-        if (text !== undefined) {
-            result.innerText = text;
-            onFinished(text !== '');
-            selectNewBlock();
-        } else {
-            showContents('outputs/' + block.number, result, onFinished);
-        }
-    };
+    block.onSubmitted = function() {
+        download.style.display = 'inline';
+        number.style.color = '#5F5';
+        selectNewBlock();
+    }
+
     block.run = function() {
         var parts = [];
         for (var i = 0; i < inSpan.children.length; i++) {
@@ -305,7 +303,11 @@ function newBlock(number, inputParts, submitted) {
             id: block.number,
             parts: parts,
         }));
-        POST('run', formData, block.showOutput);
+        POST('run', formData, function(text) {
+            result.innerText = text;
+            block.onSubmitted();
+            selectNewBlock();
+        });
 
         block.submitted = true;
     }
@@ -314,7 +316,7 @@ function newBlock(number, inputParts, submitted) {
     }
 
     if (block.submitted) {
-        block.showOutput();
+        showContents('outputs/' + block.number, result, block.onSubmitted);
     }
 
     document.getElementById('blocks').appendChild(block);
