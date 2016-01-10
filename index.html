@@ -4,36 +4,28 @@
     <meta charset="utf-8">
     <style>
 body {
-    /*background-color: #101012;*/
-    /*color: #BFB;*/
+    background-color: #111;
+    color: #EEE;
     font: 12px courier,sans-serif;
+    line-height: 0.9em;
+    margin: 0px;
+    padding: 0px;
 }
 
 input {
     font: inherit;
     color: inherit;
-}
-
-#btn-new-block {
-    position: fixed;
-    right: 10px;
-    bottom: 10px;
+    background-color: inherit;
 }
 
 .input-part {
-    margin-left: 5px;
-    padding: 1px 3px;
-    background: #EEE;
+    margin: 0px 3px;
+    padding: 0px 3px;
+    background-color: #222;
     font-weight: bold;
 }
 
-button {
-    margin: 0px 5px;
-}
-
 .result {
-    border-left: 2px solid;
-    padding-left: 4px;
     margin-top: 3px;
     margin-bottom: 10px;
     white-space: pre;
@@ -41,8 +33,8 @@ button {
 }
 
 .block-number {
-    color: #000;
-    font: bold 14px sans-serif;
+    color: #F55;
+    font: bold 12px sans-serif;
 }
     </style>
     <script>
@@ -230,11 +222,7 @@ function newBlock(number, inputParts, submitted) {
     number.classList.add('block-number');
     block.appendChild(number);
 
-    var remove = document.createElement('button');
-    remove.classList.add('remove');
-    remove.innerText = 'x'
-    block.appendChild(remove);
-    block.remove = remove.onclick = function() {
+    block.remove = function() {
         if (inSpan.contains(input)) {
             if (block.parentNode.lastChild !== block) {
                 block.nextSibling.select();
@@ -250,16 +238,11 @@ function newBlock(number, inputParts, submitted) {
             client.open('GET', '/remove/' + block.number);
             client.send();
         }
-    }
+    };
 
     var inSpan = document.createElement('span');
     block.inSpan = inSpan;
     block.appendChild(inSpan);
-
-    var run = document.createElement('button');
-    run.classList.add('run');
-    run.innerText = '>'
-    block.appendChild(run);
 
     var download = document.createElement('a');
     download.href = '/outputs/' + block.number;
@@ -287,7 +270,7 @@ function newBlock(number, inputParts, submitted) {
             showContents('outputs/' + block.number, result, onFinished);
         }
     };
-    block.run = run.onclick = function() {
+    block.run = function() {
         var parts = [];
         for (var i = 0; i < inSpan.children.length; i++) {
             var child = inSpan.children[i];
