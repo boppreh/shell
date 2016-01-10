@@ -143,6 +143,10 @@ function showGallery(path, finalResult) {
 
 function selectNewBlock() {
     var lastBlock = document.getElementById('blocks').lastChild;
+    if (!lastBlock) {
+        return newBlock();
+    }
+
     var lastFirstPart = lastBlock.inSpan.firstChild;
     if (lastFirstPart.innerText === '') {
         lastFirstPart.focus();
@@ -190,14 +194,16 @@ function newInputPart(block, text) {
             selectNewBlock();
         }
         if (e.which === 27) {
-            if (block.previousSibling) {
-                block.previousSibling.inSpan.firstChild.focus();
-            } else if (block.nextSibling) {
-                block.nextSibling.inSpan.firstChild.focus();
+            var prev = block.previousSibling;
+            var next = block.nextSibling;
+            block.remove();
+            if (prev) {
+                prev.inSpan.firstChild.focus();
+            } else if (next) {
+                next.inSpan.firstChild.focus();
             } else {
                 selectNewBlock();
             }
-            block.remove();
         }
         if (e.which === 38) {
             block.previousSibling && block.previousSibling.inSpan.firstChild.focus();
@@ -264,6 +270,7 @@ function newBlock(number, inputParts, submitted) {
         if (text !== undefined) {
             result.innerText = text;
             onFinished(text !== '');
+            selectNewBlock();
         } else {
             showContents('outputs/' + block.number, result, onFinished);
         }
