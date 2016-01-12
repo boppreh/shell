@@ -1,7 +1,14 @@
 import mimetypes
 import subprocess
+import os
 def run_command(command, on_type, on_start, on_end, context={}):
     op, *parts = command
+    
+    if op == 'cd':
+    	os.chdir(*parts)
+    	on_end('')
+    	return
+
     try:
         on_type(filter(bool, sum(map(mimetypes.guess_type, parts), ())))
     except StopIteration:
