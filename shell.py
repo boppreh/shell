@@ -95,7 +95,7 @@ def run():
             try:
                 return output.decode('utf-8')
             except UnicodeError:
-                return ''
+                pass
         return str(output)
     except Exception as e:
         return 'Shell {}: {}'.format(e.__class__.__name__, e)
