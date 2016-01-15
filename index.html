@@ -63,7 +63,7 @@ function setupInlineMedia(media) {
         function onmove(e2) {
             var scaleX = e2.clientX / e.clientX;
             var scaleY = e2.clientY / e.clientY;
-            var scale = Math.max(0.01, Math.min(scaleX, scaleY));
+            var scale = Math.max(0.01, scaleX, scaleY);
 
             media.width = scale * media.initialWidth;
             media.height = scale * media.initialHeight;
@@ -77,6 +77,11 @@ function setupInlineMedia(media) {
         }
         window.addEventListener('mousemove', onmove);
         window.addEventListener('mouseup', onup);
+    };
+    media.ondblclick = function(e) {
+        var ratio = media.height / media.width;
+        media.width = window.innerWidth;
+        media.height = media.width * ratio;
     }
 }
 
