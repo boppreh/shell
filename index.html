@@ -12,7 +12,7 @@ body {
 }
 
 a {
-    color: inherit;
+    color: #999;
     margin-left: 5px;
 }
 
@@ -258,6 +258,15 @@ function newBlock(number, inputParts, submitted) {
         inSpan.appendChild(newInputPart(block, inputParts[i]));
     }
     block.appendChild(inSpan);
+
+    var remove = document.createElement('a');
+    remove.href = 'javascript:';
+    remove.innerText = 'remove';
+    remove.tabIndex = -1;
+    block.appendChild(remove);
+    remove.onclick = function(e) {
+        block.remove();
+    }
 
     var rerun = document.createElement('a');
     rerun.href = 'javascript:';
