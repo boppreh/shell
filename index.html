@@ -161,8 +161,9 @@ function selectNewBlock() {
     if (lastFirstPart.innerText === '') {
         lastFirstPart.focus();
         lastFirstPart.scrollIntoView();
+        return lastFirstPart;
     } else {
-        newBlock();
+        return newBlock().inSpan.firstChild;
     }
 }
 
@@ -201,8 +202,7 @@ function newInputPart(block, text) {
                 }
             }
             e.preventDefault();
-            block.run();
-            selectNewBlock();
+            block.run(selectNewBlock());
         }
         if (e.which === 27) {
             var prev = block.previousSibling;
@@ -265,6 +265,9 @@ function newBlock(number, inputParts, submitted) {
     rerun.style.display = 'none';
     rerun.tabIndex = -1;
     block.appendChild(rerun);
+    rerun.onclick = function(e) {
+        block.run();
+    }
 
     var download = document.createElement('a');
     download.href = '/outputs/' + block.number;
@@ -283,10 +286,9 @@ function newBlock(number, inputParts, submitted) {
         download.style.display = 'inline';
         rerun.style.display = 'inline';
         number.style.color = '#5F5';
-        selectNewBlock();
     }
 
-    block.run = rerun.onclick = function() {
+    block.run = function(scrollTo) {
         while (result.firstChild) {
             result.removeChild(result.firstChild);
         }
@@ -323,7 +325,9 @@ function newBlock(number, inputParts, submitted) {
         POST('run', formData, function(text) {
             result.innerText = text;
             block.onSubmitted();
-            selectNewBlock();
+            if (scrollTo) {
+                scrollTo.scrollIntoView();
+            }
         });
 
         block.submitted = true;
@@ -338,6 +342,8 @@ function newBlock(number, inputParts, submitted) {
 
     document.getElementById('blocks').appendChild(block);
     inSpan.firstChild.focus();
+
+    return block;
 }
 function loadSession() {
     var client = new XMLHttpRequest();
