@@ -114,7 +114,7 @@ function showContents(path, result, onFinished) {
             } else {
                 result.style.display == 'block';
             }
-            result.innerText = request.responseText;
+            result.textContent = request.responseText;
             onFinished && onFinished();
         } else {
             request.abort();
@@ -158,7 +158,7 @@ function selectNewBlock() {
     }
 
     var lastFirstPart = lastBlock.inSpan.firstChild;
-    if (lastFirstPart.innerText === '') {
+    if (lastFirstPart.textContent === '') {
         lastFirstPart.focus();
         lastFirstPart.scrollIntoView();
         return lastFirstPart;
@@ -171,7 +171,7 @@ function newInputPart(block, text) {
     var part = document.createElement('span');
     part.classList.add('input-part');
     part.contentEditable = true;
-    part.innerText = text || '';
+    part.textContent = text || '';
     part.onfocus = function(e) {
         
     }
@@ -187,7 +187,7 @@ function newInputPart(block, text) {
             if (e.shiftKey) {
                 if (!part.previousSibling) {
                     e.preventDefault();
-                } else if (part.innerText === '') {
+                } else if (part.textContent === '') {
                     part.previousSibling.focus();
                     part.parentNode.removeChild(part);
                     e.preventDefault();
@@ -197,8 +197,8 @@ function newInputPart(block, text) {
         if (e.which === 13) {
             if (e.ctrlKey) {
                 var firstPart = block.inSpan.firstChild;
-                if (firstPart.innerText[0] !== '@') {
-                    firstPart.innerText = '@' + firstPart.innerText;
+                if (firstPart.textContent[0] !== '@') {
+                    firstPart.textContent = '@' + firstPart.textContent;
                 }
             }
             e.preventDefault();
@@ -236,7 +236,7 @@ function newBlock(number, inputParts, submitted) {
     block.submitted = submitted;
 
     var number = document.createElement('span');
-    number.innerText = '#' + block.number;
+    number.textContent = '#' + block.number;
     number.classList.add('block-number');
     block.appendChild(number);
 
@@ -261,7 +261,7 @@ function newBlock(number, inputParts, submitted) {
 
     var remove = document.createElement('a');
     remove.href = 'javascript:';
-    remove.innerText = 'remove';
+    remove.textContent = 'remove';
     remove.tabIndex = -1;
     block.appendChild(remove);
     remove.onclick = function(e) {
@@ -270,7 +270,7 @@ function newBlock(number, inputParts, submitted) {
 
     var rerun = document.createElement('a');
     rerun.href = 'javascript:';
-    rerun.innerText = 'run';
+    rerun.textContent = 'run';
     rerun.style.display = 'none';
     rerun.tabIndex = -1;
     block.appendChild(rerun);
@@ -281,7 +281,7 @@ function newBlock(number, inputParts, submitted) {
     var download = document.createElement('a');
     download.href = '/outputs/' + block.number;
     download.download = block.number;
-    download.innerText = 'download';
+    download.textContent = 'download';
     download.style.display = 'none';
     download.tabIndex = -1;
     block.appendChild(download);
@@ -304,7 +304,7 @@ function newBlock(number, inputParts, submitted) {
 
         var parts = [];
         for (var i = 0; i < inSpan.children.length; i++) {
-            parts.push(inSpan.children[i].innerText);
+            parts.push(inSpan.children[i].textContent);
         }
         if (parts.length === 1 && parts[0] === '') {
             return;
@@ -329,7 +329,7 @@ function newBlock(number, inputParts, submitted) {
             parts: parts,
         }));
         POST('run', formData, function(text) {
-            result.innerText = text;
+            result.textContent = text;
             block.onSubmitted();
             if (scrollTo) {
                 scrollTo.scrollIntoView();
