@@ -1,6 +1,7 @@
 import common
 import uncommon
 
+import traceback
 import time
 import flask
 from queue import Queue
@@ -23,6 +24,17 @@ try:
 except IOError:
     blocks = {}
 
+import pprint
+def pretty_print(output):
+    if output is None or output == '':
+        return ''
+    if isinstance(output, bytes):
+        try:
+            return output.decode('utf-8')
+        except UnicodeError:
+            pass
+    return pprint.pformat(output)
+
 @app.route('/')
 def root():
     return flask.send_file('index.html')
@@ -43,14 +55,10 @@ def get_output(id):
             time.sleep(0.5)
 
         block = blocks[id]
-        result = None
-        try:
-            if isinstance(block.output, bytes):
-                result = block.output.decode('utf-8')
-        except UnicodeError as e:
-            print(e)
-        result = result or str(block.output)
-        return flask.Response(result, mimetype=block.inferred_type)
+        if block.inferred_type:
+            return flask.Response(block.output, mimetype=block.inferred_type)
+        else:
+            return pretty_print(block.output)
 
 @app.route('/remove/<id>')
 def remove_output(id):
@@ -80,25 +88,23 @@ def run():
             type = t
         def on_start(kill):
             blocks[id] = Block(command, PENDING, type, kill)
-        def on_end(output):
-            blocks[id] = Block(command, output, type, None)
         context = {id: b.output for id, b in blocks.items() if b.output is not PENDING}
         if command[0].startswith('@'):
             command[0] = command[0][1:]
-            run_command = uncommon.run_command
-        else:
             command = shlex.split(command[0]) + command[1:]
             run_command = common.run_command
-        run_command(command, on_type, on_start, on_end, context=context)
-
-        output = blocks[id].output;
-        if isinstance(output, bytes):
-            try:
-                return output.decode('utf-8')
-            except UnicodeError:
-                pass
-        return str(output)
+        else:
+            command[0] = command[0]
+            run_command = uncommon.run_command
+        try:
+            output = run_command(command, on_type, on_start, context=context)
+        except Exception as e:
+            traceback.print_exc()
+            raise
+        blocks[id] = Block(command, output, type, None)
+        return get_output(id)
     except Exception as e:
+        traceback.print_exc()
         return 'Shell {}: {}'.format(e.__class__.__name__, e)
 
 def persist():

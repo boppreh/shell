@@ -1,16 +1,12 @@
-import mimetypes
 import re
 
 import sys
-sys.path.append('../supermap')
+sys.path.append('../portal')
+from portal import APPEND as a, CLEAR as c, DELETE as d, EXEC as e, write as w, read as r, children
 sys.path.append('../altpython')
 from altpython import replace_syntax
 
-from supermap import BaseSupermap, FileMap
-BaseSupermap.auto_expand = True
-f = FileMap('.')
-
-def run_code(src, context):
+def run_code(src, context, VALUE=None):
 	import string
 	import itertools
 	import os
@@ -26,48 +22,27 @@ def run_code(src, context):
 				break
 		return value
 
-	replace = lambda s: re.sub(r'#(\d+)', r'context[\1]', s)
+	replace = lambda s: re.sub(r'#(\d+)', r'context[\1]', s).replace('#', 'VALUE')
 	modified_src = replace_syntax(src, replace, strip_comments=False)
 	return eval(modified_src)
 
-def run_command(command, on_type, on_start, on_end, context={}):
+def run_command(command, on_type, on_start, context):
+	# TODO: kill
+	on_start(None)
+
 	if len(command) == 1:
-		src, = command
-		on_start(None)
-		on_end(run_code(src, context))
-		return
-
-	op, path, *rest = command
-
-	if op == 'meta':
-		on_type(mimetypes.guess_type(path)[0])
-		try:
-			on_end('\n'.join(f[path]))
-		except:
-			on_end(f[path])
-		return
-	elif op == 'append':
-		dst, = rest
-		if f.isdir(path):
-			f[dst] = f[path]
-		else:
-			f[dst] = f[dst] + f[path]
-	elif op == 'clear':
-		assert not rest
-		if f.isdir(path):
-			for k in f[path]:
-				del f[path]
-		else:
-			f[path] = ''
-	elif op == 'remove':
-		assert not rest
-		del f[path]
-	elif op == 'exec':
-		params, = rest
-		raise NotImplementedError()
+		return run_code(command[0], context)
 	else:
-		raise ValueError('Unexpected operator {}'.format(op))
-	on_end('')
+		first, *rest = command
+		if first.startswith('#'):
+			values = context[int(first[1:])]
+			if isinstance(values, dict):
+				values = values.values()
+			src, = rest
+			return {k: run_code(src, context, k) for k in values}
+		elif first.startswith('/'):
+			return porta.EXEC(first[1:], rest)
+		else:
+			return globals()[first](*rest)
 
-is_threaded = False
-is_debug = True
+	raise ValueError("Couldn't interpret command " + repr(command))
