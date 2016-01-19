@@ -182,7 +182,7 @@ function newInputPart(block, text) {
 
         if (e.which === 9) {
             if (!e.shiftKey && !part.nextSibling) {
-                part.insertAdjacentElement('afterEnd', newInputPart(block));
+                part.parentNode.appendChild(newInputPart(block));
             }
             if (e.shiftKey) {
                 if (!part.previousSibling) {
