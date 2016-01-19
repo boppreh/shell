@@ -36,10 +36,11 @@ def run_command(command, on_type, on_start, context):
 		first, *rest = command
 		if first.startswith('#'):
 			values = context[int(first[1:])]
-			if isinstance(values, dict):
-				values = values.values()
 			src, = rest
-			return {k: run_code(src, context, k) for k in values}
+			if isinstance(values, dict):
+				return {k: run_code(src, context, v) for k, v in values.items()}
+			else:
+				return {k: run_code(src, context, k) for k in values}
 		elif first.startswith('/'):
 			return porta.EXEC(first[1:], rest)
 		else:
