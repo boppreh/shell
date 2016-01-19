@@ -10,6 +10,7 @@ from collections import namedtuple
 import pickle
 import atexit
 import glob
+import shlex
 
 PENDING = {'PENDING': 1}
 
@@ -86,7 +87,7 @@ def run():
             command[0] = command[0][1:]
             run_command = uncommon.run_command
         else:
-            command = command[0].split() + command[1:]
+            command = shlex.split(command[0]) + command[1:]
             run_command = common.run_command
         run_command(command, on_type, on_start, on_end, context=context)
 
