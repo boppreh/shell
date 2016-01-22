@@ -174,6 +174,11 @@ function newInputPart(block, text) {
     part.type = 'text';
     part.classList.add('input-part');
     part.value = text || '';
+    var oldFocus = part.focus.bind(part);
+    part.focus = function() {
+        oldFocus();
+        part.select();
+    };
     part.oninput = function() {
         hiddenInput.textContent = part.value;
         part.style.width = Math.max(10, hiddenInput.getBoundingClientRect().width) + 'px';
@@ -184,9 +189,13 @@ function newInputPart(block, text) {
             return;
         }
 
+        // Tab
         if (e.which === 9) {
             if (!e.shiftKey && !part.nextSibling) {
-                part.parentNode.appendChild(newInputPart(block));
+                var nextPart = newInputPart(block);
+                part.parentNode.appendChild(nextPart);
+                nextPart.focus();
+                e.preventDefault();
             }
             if (e.shiftKey) {
                 if (!part.previousSibling) {
@@ -198,16 +207,19 @@ function newInputPart(block, text) {
                 }
             }
         }
+        // Enter
         if (e.which === 13) {
             if (e.ctrlKey) {
                 var firstPart = block.inSpan.firstChild;
                 if (firstPart.value[0] !== '@') {
                     firstPart.value = '@' + firstPart.value;
+                    firstPart.oninput();
                 }
             }
             e.preventDefault();
             block.run(selectNewBlock());
         }
+        // Esc
         if (e.which === 27) {
             var prev = block.previousSibling;
             var next = block.nextSibling;
@@ -220,6 +232,7 @@ function newInputPart(block, text) {
                 selectNewBlock();
             }
         }
+        // Up/Down
         if (e.which === 38) {
             block.previousSibling && block.previousSibling.inSpan.firstChild.focus();
         } else if (e.which === 40) {
