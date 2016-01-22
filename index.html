@@ -19,9 +19,11 @@ a {
 .input-part {
     margin: 0px 3px;
     padding: 0px 3px;
-    min-width: 10px;
     background-color: #222;
+    color: inherit;
+    font: inherit;
     font-weight: bold;
+    border: none;
 }
 
 .result {
@@ -158,7 +160,7 @@ function selectNewBlock() {
     }
 
     var lastFirstPart = lastBlock.inSpan.firstChild;
-    if (lastFirstPart.textContent === '') {
+    if (lastFirstPart.value === '') {
         lastFirstPart.focus();
         lastFirstPart.scrollIntoView();
         return lastFirstPart;
@@ -168,13 +170,15 @@ function selectNewBlock() {
 }
 
 function newInputPart(block, text) {
-    var part = document.createElement('span');
+    var part = document.createElement('input');
+    part.type = 'text';
     part.classList.add('input-part');
-    part.contentEditable = true;
-    part.textContent = text || '';
-    part.onfocus = function(e) {
-        
+    part.value = text || '';
+    part.oninput = function() {
+        hiddenInput.textContent = part.value;
+        part.style.width = Math.max(10, hiddenInput.getBoundingClientRect().width) + 'px';
     }
+    part.oninput();
     part.onkeydown = function(e) {
         if (e.ctrlKey && e.which !== 13) {
             return;
@@ -187,7 +191,7 @@ function newInputPart(block, text) {
             if (e.shiftKey) {
                 if (!part.previousSibling) {
                     e.preventDefault();
-                } else if (part.textContent === '') {
+                } else if (part.value === '') {
                     part.previousSibling.focus();
                     part.parentNode.removeChild(part);
                     e.preventDefault();
@@ -197,8 +201,8 @@ function newInputPart(block, text) {
         if (e.which === 13) {
             if (e.ctrlKey) {
                 var firstPart = block.inSpan.firstChild;
-                if (firstPart.textContent[0] !== '@') {
-                    firstPart.textContent = '@' + firstPart.textContent;
+                if (firstPart.value[0] !== '@') {
+                    firstPart.value = '@' + firstPart.value;
                 }
             }
             e.preventDefault();
@@ -304,7 +308,7 @@ function newBlock(number, inputParts, submitted) {
 
         var parts = [];
         for (var i = 0; i < inSpan.children.length; i++) {
-            parts.push(inSpan.children[i].textContent);
+            parts.push(inSpan.children[i].value);
         }
         if (parts.length === 1 && parts[0] === '') {
             return;
@@ -368,8 +372,15 @@ function loadSession() {
     }
     client.send();
 }
+var hiddenInput = document.createElement('span');
 window.onload = function() {
     loadSession();
+    hiddenInput.classList.add('input-part');
+    hiddenInput.style.whiteSpace = 'pre';
+    hiddenInput.style.visibility = 'hidden';
+    hiddenInput.style.position = 'absolute';
+    hiddenInput.style.top = '0px';
+    document.body.appendChild(hiddenInput);
     window.onkeydown = function(e) {
         if (e.which === 32 && !e.target.classList.contains('input-part')) {
             e.preventDefault();
