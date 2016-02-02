@@ -40,7 +40,11 @@ def root():
 
 @app.route('/glob', methods=['GET', 'POST'])
 def get_glob():
-    return '\n'.join(glob.glob(flask.request.args['path']))
+    if 'path' in flask.request.args:
+        path = flask.request.args['path']
+    else:
+        path = flask.request.form['path']
+    return '\n'.join(glob.glob(path))
 
 @app.route('/file')
 def get_file():

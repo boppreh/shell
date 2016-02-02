@@ -187,10 +187,33 @@ function newInputPart(block, text) {
     }
     part.oninput();
     part.onkeydown = function(e) {
-        if (e.ctrlKey && e.which !== 13) {
+        if (e.ctrlKey && !(e.which === 13 || e.which == 32)) {
             return;
         }
 
+        // Ctrl+space
+        if (e.which == 32 && e.ctrlKey) {
+            var formData = new FormData();
+            formData.append('path', part.value);
+            POST('/glob', formData, function(text) {
+                if (text.length === 0) {
+                    return;
+                }
+                var lines = text.split('\n');
+                part.value = lines[0];
+                part.oninput()
+                for (var i = 1; i < lines.length; i++) {
+                    var nextPart = newInputPart(block);
+                    nextPart.value = lines[i];
+                    nextPart.oninput()
+                    part.parentNode.appendChild(nextPart);
+                }
+                
+                var nextPart = newInputPart(block);
+                part.parentNode.appendChild(nextPart);
+                nextPart.focus()
+            });
+        }
         // Tab
         if (e.which === 9) {
             if (!e.shiftKey && !part.nextSibling) {
