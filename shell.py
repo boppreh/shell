@@ -97,7 +97,6 @@ def run():
             command = shlex.split(command[0]) + command[1:]
             run_command = common.run_command
         try:
-            print(command)
             output = run_command(command, on_type, on_start, context=context)
         except Exception as e:
             traceback.print_exc()
