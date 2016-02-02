@@ -1,5 +1,4 @@
 import common
-import uncommon
 
 import traceback
 import time
@@ -90,13 +89,15 @@ def run():
             blocks[id] = Block(command, PENDING, type, kill)
         context = {id: b.output for id, b in blocks.items() if b.output is not PENDING}
         if command[0].startswith('@'):
-            command[0] = command[0][1:]
-            command = shlex.split(command[0]) + command[1:]
-            run_command = common.run_command
+            command[0] = command[0]
+            import uncommon
+            run_command = uncommon.run_command
         else:
             command[0] = command[0]
-            run_command = uncommon.run_command
+            command = shlex.split(command[0]) + command[1:]
+            run_command = common.run_command
         try:
+            print(command)
             output = run_command(command, on_type, on_start, context=context)
         except Exception as e:
             traceback.print_exc()
@@ -112,4 +113,4 @@ def persist():
         pickle.dump(blocks, f)
 atexit.register(persist)
 
-app.run(port=80, threaded=True)
+app.run(port=8000, threaded=True)
