@@ -117,11 +117,6 @@ def run():
         traceback.print_exc()
         return 'Shell {}: {}'.format(e.__class__.__name__, e)
 
-@app.after_request
-def allow_cors(response):
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    return response
-
 def persist():
     with open('session.pickle', 'wb') as f:
         pickle.dump(blocks, f)

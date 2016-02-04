@@ -52,21 +52,6 @@ a {
     margin-right: 30px;
     min-width: 530px;
 }
-
-#host {
-    position: fixed;
-    bottom: 0;
-    right: 0;
-
-    margin: 3px;
-    color: inherit;
-    background-color: inherit;
-    border: 1px solid #ccc;
-
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-}
     </style>
     <script>
 function setupInlineMedia(media) {
@@ -118,19 +103,15 @@ function setupInlineMedia(media) {
 }
 
 function POST(path, formData, onFinished) {
-    var hosts = document.getElementById("host");
-    var prefix = hosts.options[hosts.selectedIndex].textContent;
-    var url = window.location.protocol+'//'+prefix+path;
-
     var request = new XMLHttpRequest();
-    request.open('POST', url, true);
+    request.open('POST', path, true);
     request.onreadystatechange = function(e) {
         if (request.readyState >= 4) {
             onFinished(request.responseText);
         }
     };
     request.onerror = function(e) {
-        alert('Error requesting URL ' + url);
+        alert('Error requesting URL ' + path);
     }
     request.send(formData);
 }
@@ -464,12 +445,6 @@ window.onload = function() {
     </script>
 </head>
 <body>
-<select id="host">
-    <option>localhost:8000</option>
-    <option>localhost:8001</option>
-    <option>4mm.org</option>
-    <option>venus.inf.ufsc.br</option>
-</select>
 <div id="blocks"></div>
 <div id="controls"></div>
 </body>
