@@ -48,6 +48,8 @@ def get_glob():
         path = flask.request.args['path']
     else:
         path = flask.request.form['path']
+    if not '*' in path:
+        path = path + '*'
     return '\n'.join(glob.glob(path))
 
 @app.route('/file')
