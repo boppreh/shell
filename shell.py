@@ -20,7 +20,7 @@ app = flask.Flask(__name__)
 events_queue = Queue()
 try:
     blocks = pickle.load(open('session.pickle', 'rb'))
-except IOError:
+except (IOError, EOFError):
     blocks = {}
 
 import pprint
