@@ -41,6 +41,21 @@ a {
     color: #55F;
     font: bold 12px sans-serif;
 }
+
+select {
+    position: fixed;
+    top: 0;
+    right: 0;
+
+    margin: 3px;
+    color: inherit;
+    background-color: inherit;
+    border: 1px solid #ccc;
+
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
     </style>
     <script>
 function setupInlineMedia(media) {
@@ -430,6 +445,13 @@ window.onload = function() {
     </script>
 </head>
 <body>
+<div id="host">
+    <select>
+        <option>localhost</option>
+        <option>4mm.org</option>
+        <option>venus.inf.ufsc.br</option>
+    </select>
+</div>
 <div id="blocks"></div>
 <div id="controls"></div>
 </body>
