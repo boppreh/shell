@@ -32,7 +32,7 @@ a {
     margin-top: 3px;
     margin-bottom: 10px;
     white-space: pre;
-    word-wrap: break-word;
+    word-wrap: break-all;
     line-height: 0.9em;
     color: #BBB;
 }
@@ -40,6 +40,16 @@ a {
 .block-number {
     color: #55F;
     font: bold 12px sans-serif;
+}
+
+#blocks {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.block {
+    flex-grow: 1;
+    margin-right: 30px;
 }
 
 select {
@@ -289,6 +299,7 @@ function newInputPart(block, text) {
 
 function newBlock(number, inputParts, submitted) {
     var block = document.createElement('div');
+    block.classList.add('block');
     var lastBlock = document.getElementById('blocks').lastChild;
     block.number = number || (lastBlock && lastBlock.number + 1) || 1;
     block.submitted = submitted;
