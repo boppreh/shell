@@ -34,6 +34,10 @@ def pretty_print(output):
             pass
     return pprint.pformat(output)
 
+@app.route('/favicon.png')
+def favicon():
+    return flask.send_file('favicon.png')
+
 @app.route('/')
 def root():
     return flask.send_file('index.html')
