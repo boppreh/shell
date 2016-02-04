@@ -53,7 +53,7 @@ a {
     min-width: 530px;
 }
 
-select {
+#host {
     position: fixed;
     bottom: 0;
     right: 0;
@@ -118,13 +118,20 @@ function setupInlineMedia(media) {
 }
 
 function POST(path, formData, onFinished) {
+    var hosts = document.getElementById("host");
+    var prefix = hosts.options[hosts.selectedIndex].textContent;
+    var url = window.location.protocol+'//'+prefix+path;
+
     var request = new XMLHttpRequest();
-    request.open('POST', path, true);
+    request.open('POST', url, true);
     request.onreadystatechange = function(e) {
         if (request.readyState >= 4) {
             onFinished(request.responseText);
         }
     };
+    request.onerror = function(e) {
+        alert('Error requesting URL ' + url);
+    }
     request.send(formData);
 }
 
@@ -177,7 +184,7 @@ function showGallery(path, finalResult) {
         for (var i = 0; i < lines.length; i++) {
             var subResult = document.createElement('div');
             finalResult.appendChild(subResult);
-            showContents('file?path=' + lines[i], subResult);
+            showContents('/file?path=' + lines[i], subResult);
         }
     });
 }
@@ -386,9 +393,9 @@ function newBlock(number, inputParts, submitted) {
         if (parts.length === 1 && parts[0][0] == '!') {
             var path = parts[0].slice(1);
             if (parts[0].indexOf('*') === -1) {
-                showContents('file?path=' + path, result);
+                showContents('/file?path=' + path, result);
             } else {
-                showGallery('glob?path=' + path, result);
+                showGallery('/glob?path=' + path, result);
             }
             return;
         }
@@ -398,7 +405,7 @@ function newBlock(number, inputParts, submitted) {
             id: block.number,
             parts: parts,
         }));
-        POST('run', formData, function(text) {
+        POST('/run', formData, function(text) {
             result.textContent = text;
             block.onSubmitted();
             if (scrollTo) {
@@ -457,13 +464,12 @@ window.onload = function() {
     </script>
 </head>
 <body>
-<div id="host">
-    <select>
-        <option>localhost</option>
-        <option>4mm.org</option>
-        <option>venus.inf.ufsc.br</option>
-    </select>
-</div>
+<select id="host">
+    <option>localhost:8000</option>
+    <option>localhost:8001</option>
+    <option>4mm.org</option>
+    <option>venus.inf.ufsc.br</option>
+</select>
 <div id="blocks"></div>
 <div id="controls"></div>
 </body>
