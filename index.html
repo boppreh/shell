@@ -52,6 +52,13 @@ a {
     margin-right: 30px;
     min-width: 530px;
 }
+
+.logout {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    color: inherit;
+}
     </style>
     <script>
 function setupInlineMedia(media) {
@@ -441,6 +448,11 @@ window.onload = function() {
             selectNewBlock();
         }
     };
+    var logout = document.createElement("a");
+    logout.classList.add("logout");
+    logout.textContent = "logout";
+    logout.href = window.location.protocol + '//' + 'logout:logout@' + window.location.host;
+    document.body.appendChild(logout);
 };
     </script>
 </head>
