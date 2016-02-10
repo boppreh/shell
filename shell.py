@@ -66,6 +66,8 @@ def get_output(id):
         block = blocks[id]
         if block.inferred_type:
             return flask.Response(block.output, mimetype=block.inferred_type)
+        elif isinstance(block.output, bytes):
+            return block.output
         else:
             return pretty_print(block.output)
 
@@ -92,11 +94,8 @@ def run():
 
         command = [p for p in data['parts'] if p]
 
-        type = None
-        def on_type(t):
-            type = t
         def on_start(kill):
-            blocks[id] = Block(command, PENDING, type, kill)
+            blocks[id] = Block(command, PENDING, None, kill)
         context = {id: b.output for id, b in blocks.items() if b.output is not PENDING}
         if command[0].startswith('@'):
             command[0] = command[0]
@@ -106,12 +105,14 @@ def run():
             command[0] = command[0]
             command = shlex.split(command[0]) + command[1:]
             run_command = common.run_command
+
         try:
-            output = run_command(command, on_type, on_start, context=context)
+            output, mimetype = run_command(command, on_start, context=context)
         except Exception as e:
             traceback.print_exc()
             raise
-        blocks[id] = Block(command, output, type, None)
+
+        blocks[id] = Block(command, output, mimetype, None)
         return get_output(id)
     except Exception as e:
         traceback.print_exc()
@@ -122,4 +123,4 @@ def persist():
         pickle.dump(blocks, f)
 atexit.register(persist)
 
-app.run(port=8000, threaded=True)
+app.run(port=8000, threaded=True, debug=True)
