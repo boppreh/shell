@@ -11,6 +11,7 @@ import pickle
 import atexit
 import glob
 import shlex
+from os.path import expanduser
 
 PENDING = {'PENDING': 1}
 
@@ -50,7 +51,7 @@ def get_glob():
         path = flask.request.form['path']
     if not '*' in path:
         path = path + '*'
-    return '\n'.join(glob.glob(path))
+    return '\n'.join(glob.glob(expanduser(path)))
 
 @app.route('/file')
 def get_file():

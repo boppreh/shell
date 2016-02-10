@@ -125,7 +125,6 @@ function POST(path, formData, onFinished) {
 
 function showRequest(request, altPath, div, onFinished) {
     request.onreadystatechange = function(e) {
-        console.log(request.readyState)
         var header = request.getResponseHeader('Content-Type');
         if (header === null) return;
 
