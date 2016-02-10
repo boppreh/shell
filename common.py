@@ -4,20 +4,20 @@ import os
 import shlex
 def run_command(command, on_start, context={}):
     op, *parts = command
+    mimetype = None
     
     if op == 'cd':
-    	os.chdir(*parts)
-    	return ''
-
-    mimetype = None
-    try:
-        for part in parts:
-            guess, _ = mimetypes.guess_type(part)
-            if guess:
-                mimetype = guess
-                break
-    except StopIteration:
-        pass
+        os.chdir(*parts)
+        return ''
+    elif op == 'cat':
+        try:
+            for part in parts:
+                guess, _ = mimetypes.guess_type(part)
+                if guess:
+                    mimetype = guess
+                    break
+        except StopIteration:
+            pass
     
     line = ' '.join(map(shlex.quote, command))
     print('RUNNING', line)

@@ -123,4 +123,4 @@ def persist():
         pickle.dump(blocks, f)
 atexit.register(persist)
 
-app.run(port=8000, threaded=True, debug=True)
+app.run(port=8000, threaded=True)
