@@ -330,7 +330,6 @@ function newBlock(number, inputParts, submitted) {
     var rerun = document.createElement('a');
     rerun.href = 'javascript:';
     rerun.textContent = 'run';
-    rerun.style.display = 'none';
     rerun.tabIndex = -1;
     block.appendChild(rerun);
     rerun.onclick = function(e) {
@@ -357,7 +356,6 @@ function newBlock(number, inputParts, submitted) {
 
     block.onSubmitted = function() {
         download.style.display = 'inline';
-        rerun.style.display = 'inline';
         number.style.color = '#5F5';
     }
 
