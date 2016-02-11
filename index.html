@@ -45,12 +45,18 @@ a {
 #blocks {
     display: flex;
     flex-wrap: wrap;
-
 }
 
 .block {
     margin-right: 30px;
-    min-width: 530px;
+}
+.block:before,
+.block:after {
+  content:"";
+  display:table;
+}
+.block:after {
+  clear:both;
 }
     </style>
     <script>
@@ -357,6 +363,12 @@ function newBlock(number, inputParts, submitted) {
     block.onSubmitted = function() {
         download.style.display = 'inline';
         number.style.color = '#5F5';
+
+        var width = window.getComputedStyle(block).width.slice(0, -2) - 0;
+        var minWidth = 400;
+        var columns = Math.ceil(width / minWidth);
+        var margin = 30;
+        block.style.minWidth = (columns * minWidth + (columns - 1) * margin) +  'px';
     }
 
     block.run = function(scrollTo) {
