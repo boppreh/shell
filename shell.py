@@ -15,7 +15,7 @@ from os.path import expanduser
 
 PENDING = {'PENDING': 1}
 
-Block = namedtuple('Block', ['input', 'output', 'inferred_type', 'kill'])
+Block = namedtuple('Block', ['input', 'output', 'kill'])
 
 app = flask.Flask(__name__)
 events_queue = Queue()
@@ -65,9 +65,7 @@ def get_output(id):
             time.sleep(0.5)
 
         block = blocks[id]
-        if block.inferred_type:
-            return flask.Response(block.output, mimetype=block.inferred_type)
-        elif isinstance(block.output, bytes):
+        if isinstance(block.output, bytes):
             return block.output
         else:
             return pretty_print(block.output)
@@ -96,7 +94,7 @@ def run():
         command = [p for p in data['parts'] if p]
 
         def on_start(kill):
-            blocks[id] = Block(command, PENDING, None, kill)
+            blocks[id] = Block(command, PENDING, kill)
         context = {id: b.output for id, b in blocks.items() if b.output is not PENDING}
         if command[0].startswith('@'):
             command[0] = command[0]
@@ -108,12 +106,12 @@ def run():
             run_command = common.run_command
 
         try:
-            output, mimetype = run_command(command, on_start, context=context)
+            output = run_command(command, on_start, context=context)
         except Exception as e:
             traceback.print_exc()
             raise
 
-        blocks[id] = Block(command, output, mimetype, None)
+        blocks[id] = Block(command, output, None)
         return get_output(id)
     except Exception as e:
         traceback.print_exc()
